@@ -10,8 +10,11 @@ This is Zombie! An app that never dies, and keeps coming for your release files.
 
 1. Publish GitHub Release: [How to create a Release](https://help.github.com/articles/creating-releases/)
 2. Get Access Token for that Repository: [How to create a Personal Token](https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/)
-3. Setup Zombie File Mappings: 
+3. Setup Zombie GitHub Connection: 
 
 <p align="center">
   <img src="/_info/githubsettings.png">
 </p>
+
+4. Setup Zombie File Mappings:
+

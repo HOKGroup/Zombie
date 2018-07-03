@@ -1,0 +1,159 @@
+﻿<UserControl x:Class="Zombie.Controls.LocationsView"
+             x:Name="Control"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:dd="clr-namespace:GongSolutions.Wpf.DragDrop;assembly=GongSolutions.Wpf.DragDrop"
+             xmlns:asset="clr-namespace:Zombie"
+             xmlns:utilities="clr-namespace:Zombie.Utilities.Wpf"
+             xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+             mc:Ignorable="d" 
+             d:DesignHeight="200" d:DesignWidth="200">
+    <UserControl.Resources>
+        <utilities:BoolToVisInverterConverter x:Key="BoolToVisInverterConverter"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <utilities:BooleanInverterConverter x:Key="BooleanInverterConverter"/>
+        <utilities:BoolToCursorConverter x:Key="BoolToCursorConverter"/>
+        <Style TargetType="TextBox">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsKeyboardFocused, RelativeSource={RelativeSource Self}}" Value="false">
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TextBox">
+                                <Border BorderBrush="#2B374F" BorderThickness="1">
+                                    <TextBlock Text="{TemplateBinding Text}"  TextTrimming="CharacterEllipsis" Padding="5,0,0,0"/>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="24"/>
+            <ColumnDefinition Width="24"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="24"/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Image Source="../Resources/gitHub_32x32.png" 
+               Width="18" 
+               VerticalAlignment="Center" 
+               HorizontalAlignment="Center" 
+               Visibility="{Binding LocationObject.IsSourceLocation, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+        <Button Grid.Row="0" 
+                Grid.Column="0" 
+                ToolTip="Give me a folder!"
+                Command="{Binding AddDirectoryPath, Mode=OneWay}"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                Visibility="{Binding LocationObject.IsSourceLocation, Converter={StaticResource BoolToVisInverterConverter}}"
+                Cursor="Hand" Margin="1">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <StackPanel>
+                        <Image Name="image1" Height="22" Width="22" Source="../Resources/folder_32x32.png"  Visibility="Visible" />
+                        <Image Name="image2" Height="22" Width="22" Source="../Resources/folderHover_32x32.png"  Visibility="Collapsed" />
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image2" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+        <Button Grid.Row="0" 
+                Grid.Column="1" 
+                ToolTip="You shall be removed!"
+                Command="{Binding RemoveDirectoryPath, Mode=OneWay}"
+                VerticalAlignment="Center"
+                HorizontalAlignment="Center"
+                IsEnabled="{Binding LocationObject.IsSourceLocation, Converter={StaticResource BooleanInverterConverter}}"
+                Cursor="Hand">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <StackPanel>
+                        <Image Name="image1" Height="18" Width="18" Source="../Resources/remove_32x32.png"  Visibility="Visible" />
+                        <Image Name="image2" Height="18" Width="18" Source="../Resources/removeHover_32x32.png"  Visibility="Collapsed" />
+                        <Image Name="image3" Height="18" Width="18" Source="../Resources/removeDisabled_32x32.png"  Visibility="Collapsed" />
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image2" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <DataTrigger Binding="{Binding Path=LocationObject.IsSourceLocation}" Value="True">
+                            <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image2" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image3" Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+        <AdornerDecorator Margin="3,4" 
+                          Grid.Row="0" 
+                          Grid.Column="2" 
+                          ToolTip="{Binding LocationObject.DirectoryPath}"
+                          IsEnabled="{Binding LocationObject.IsSourceLocation, Converter={StaticResource BooleanInverterConverter}}">
+            <TextBox x:Name="AccessTokenTextBox" 
+                     Padding="5,0,0,0" 
+                     BorderThickness="1" 
+                     BorderBrush="#2B374F"
+                     IsEnabled="False"
+                     FontSize="11" 
+                     Text="{Binding LocationObject.DirectoryPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                <utilities:WatermarkService.Watermark>
+                    <TextBlock FontSize="11">
+                        Location
+                    </TextBlock>
+                </utilities:WatermarkService.Watermark>
+            </TextBox>
+        </AdornerDecorator>
+        <Border Name="Border" 
+                Grid.Column="0"
+                Grid.ColumnSpan="3"
+                Grid.Row="1" 
+                BorderThickness="3,0,0,0" 
+                BorderBrush="#2B374F" 
+                CornerRadius="0" 
+                Margin="11,0,0,0" 
+                VerticalAlignment="top">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                          MaxHeight="{Binding LocationObject.MaxHeight}"
+                          Margin="0,0,5,0">
+                <ItemsControl dd:DragDrop.IsDragSource="True"
+                              dd:DragDrop.IsDropTarget="True" 
+                              dd:DragDrop.DropHandler="{Binding}">
+                    <ItemsControl.Resources>
+                        <CollectionViewSource x:Key="Assets" Source="{Binding Assets}">
+                            <CollectionViewSource.SortDescriptions>
+                                <componentModel:SortDescription PropertyName="Asset.Name" Direction="Ascending"/>
+                            </CollectionViewSource.SortDescriptions>
+                        </CollectionViewSource>
+                    </ItemsControl.Resources>
+                    <ItemsControl.ItemsSource>
+                        <Binding Source="{StaticResource Assets}"/>
+                    </ItemsControl.ItemsSource>
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type asset:AssetView}">
+                            <asset:AssetView Margin="0" Cursor="{Binding IsPlaceholder, Converter={StaticResource BoolToCursorConverter}}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+    </Grid>
+</UserControl>

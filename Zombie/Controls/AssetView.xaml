@@ -1,0 +1,42 @@
+﻿<UserControl x:Class="Zombie.AssetView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:utilities="clr-namespace:Zombie.Utilities.Wpf"
+             mc:Ignorable="d" 
+             d:DesignHeight="24" d:DesignWidth="500" Height="24">
+    <UserControl.Resources>
+        <utilities:AssetObjectToSourceConverter x:Key="AssetObjectToSourceConverter"/>
+        <utilities:BooleanInverterConverter x:Key="BooleanInverterConverter"/>
+    </UserControl.Resources>
+    <Grid IsEnabled="{Binding IsPlaceholder, Converter={StaticResource BooleanInverterConverter}}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="20"/>
+            <ColumnDefinition Width="22"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Image x:Name="CheckImage" 
+               Grid.Column="1"
+               VerticalAlignment="Top"
+               HorizontalAlignment="Left"
+               Margin="3"
+               Height="18"
+               Width="18" 
+               Source="{Binding Asset, Converter={StaticResource AssetObjectToSourceConverter}}" />
+        <Image x:Name="DraggableImage" 
+               Grid.Column="0"
+               VerticalAlignment="Center"
+               HorizontalAlignment="Center"
+               Margin="3"
+               Height="18"
+               Width="18" 
+               Source="../Resources/dragable_32x32.png" 
+               ToolTip="Drag me like a zombie!"/>
+        <Label Grid.Column="2" 
+               Content="{Binding Asset.Name, Mode=OneWay}"
+               Padding="5,0" 
+               VerticalAlignment="Center" 
+               VerticalContentAlignment="Center"/>
+    </Grid>
+</UserControl>

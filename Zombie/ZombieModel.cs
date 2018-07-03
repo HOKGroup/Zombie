@@ -84,50 +84,6 @@ namespace Zombie
         /// 
         /// </summary>
         /// <param name="settings"></param>
-        /// <param name="url"></param>
-        /// <param name="filePath"></param>
-        public void DownloadAssets(ZombieSettings settings, string url, string filePath)
-        {
-            // (Konrad) Apparently it's possible that new Windows updates change the standard 
-            // SSL protocol to SSL3. RestSharp uses whatever current one is while GitHub server 
-            // is not ready for it yet, so we have to use TLS1.2 explicitly.
-            ServicePointManager.Expect100Continue = true;
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
-            var client = new RestClient(BaseUrl);
-            var request = new RestRequest(url, Method.GET)
-            {
-                OnBeforeDeserialization = x => { x.ContentType = "application/json"; }
-            };
-            request.AddHeader("Content-type", "application/json");
-            request.AddHeader("Authorization", "Token " + settings.AccessToken);
-            request.AddHeader("Accept", "application/octet-stream");
-            request.RequestFormat = DataFormat.Json;
-
-            // (Konrad) We use 120 because even when it fails there are always some
-            // bytes that get returned with the error message.
-            var response = client.DownloadData(request);
-            if (response.Length > 120)
-            {
-                try
-                {
-                    File.WriteAllBytes(filePath, response);
-                }
-                catch (Exception e)
-                {
-                    _logger.Fatal(e.Message);
-                }
-            }
-            else
-            {
-                _logger.Error("Download failed. Less than 120 bytes were downloaded.");
-            }
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="settings"></param>
         public async void RetrieveRelease(ZombieSettings settings)
         {
             if (!string.IsNullOrEmpty(settings?.AccessToken) && 
@@ -207,7 +163,7 @@ namespace Zombie
                             var filePath = Path.Combine(dir, asset.Name);
 
                             // download
-                            DownloadAssets(settings, asset.Url, filePath);
+                            GitHubUtils.DownloadAssets(settings, asset.Url, filePath);
 
                             // verify
                             if (File.Exists(filePath))
@@ -271,9 +227,9 @@ namespace Zombie
                             }
                             catch (IOException e)
                             {
-                                // this one we can terminate because it means that we can't access the file
-                                _logger.Error("Could not get access to the destination asset. Terminating.");
-                                Messenger.Default.Send(new UpdateStatus { Status = "Could not get access to the destination asset. Terminating..." });
+                                // (Konrad) This one we can terminate because it means that we can't access the file
+                                _logger.Error(e.Message);
+                                Messenger.Default.Send(new UpdateStatus { Status = e.Message });
                                 Messenger.Default.Send(new ReleaseDownloaded { Result = ConnectionResult.Failure });
                                 return;
                             }

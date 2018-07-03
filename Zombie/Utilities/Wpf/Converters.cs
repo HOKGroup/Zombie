@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 
 #endregion
 
@@ -16,32 +17,75 @@ namespace Zombie.Utilities.Wpf
     /// <summary>
     /// Sets proper asset icon based on it's file extension.
     /// </summary>
-    public class AssetObjectToSourceConverter : IValueConverter
+    public class AssetObjectToSourceConverter : IMultiValueConverter
     {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value == null) return new Uri("pack://application:,,,/Zombie;component/Resources/unknown_32x32.png");
+            if (values[0] == null || values[1] == null)
+                return new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/unknown_32x32.png", UriKind.Absolute));
 
-            var asset = (AssetObject)value;
+            var asset = (AssetObject)values[0];
+            var isPlaceholder = (bool)values[1];
             var extension = Path.GetExtension(asset.Name.ToLower());
             switch (extension)
             {
                 case ".dll":
-                    return new Uri("pack://application:,,,/Zombie;component/Resources/dll_32x32.png");
+                    // (Konrad) Placeholder Asset is *.dll so this will be the only one that can be disabled
+                    return isPlaceholder 
+                        ? new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/dllDisabled_32x32.png", UriKind.Absolute))  
+                        : new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/dll_32x32.png", UriKind.Absolute));
                 case ".zip":
                 case ".rar":
-                    return new Uri("pack://application:,,,/Zombie;component/Resources/zip_32x32.png");
+                    return new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/zip_32x32.png", UriKind.Absolute));
                 case ".msi":
-                    return new Uri("pack://application:,,,/Zombie;component/Resources/msi_32x32.png");
+                    return new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/msi_32x32.png", UriKind.Absolute));
                 case ".jpg":
                 case ".jpeg":
                 case ".png":
-                    return new Uri("pack://application:,,,/Zombie;component/Resources/image_32x32.png");
+                case ".tiff":
+                case ".gif":
+                case ".svg":
+                    return new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/image_32x32.png", UriKind.Absolute));
                 case ".exe":
-                    return new Uri("pack://application:,,,/Zombie;component/Resources/exe_32x32.png");
+                    return new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/exe_32x32.png", UriKind.Absolute));
                 default:
-                    return new Uri("pack://application:,,,/Zombie;component/Resources/unknown_32x32.png");
+                    return new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/unknown_32x32.png", UriKind.Absolute));
             }
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class AssetNameToBoolConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value == null) return false;
+
+            var name = (string)value;
+            var extension = Path.GetExtension(name.ToLower());
+            return (extension == ".zip" || extension == ".rar");
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class BooleanToDragableSourceConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return (value is bool && (bool) value)
+                ? new Uri("pack://application:,,,/Zombie;component/Resources/dragableDisabled_32x32.png")
+                : new Uri("pack://application:,,,/Zombie;component/Resources/dragable_32x32.png");
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

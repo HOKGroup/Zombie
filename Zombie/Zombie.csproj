@@ -86,7 +86,8 @@
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Transactions" />
@@ -133,6 +134,7 @@
       <DependentUpon>MappingsView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\MappingsViewModel.cs" />
+    <Compile Include="Utilities\GitHubUtils.cs" />
     <Compile Include="Utilities\UpdateRunner.cs" />
     <Compile Include="Utilities\Wpf\Converters.cs" />
     <Compile Include="Utilities\EnumHelper.cs" />
@@ -274,6 +276,17 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="iconsZombie.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\previewDisabled_32x32.png" />
+    <Resource Include="Resources\previewHover_32x32.png" />
+    <Resource Include="Resources\preview_32x32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\dragableDisabled_32x32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\dllDisabled_32x32.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

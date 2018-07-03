@@ -9,34 +9,75 @@
     <UserControl.Resources>
         <utilities:AssetObjectToSourceConverter x:Key="AssetObjectToSourceConverter"/>
         <utilities:BooleanInverterConverter x:Key="BooleanInverterConverter"/>
+        <utilities:BooleanToDragableSourceConverter x:Key="BooleanToDragableSourceConverter"/>
+        <utilities:AssetNameToBoolConverter x:Key="AssetNameToBoolConverter"/>
     </UserControl.Resources>
     <Grid IsEnabled="{Binding IsPlaceholder, Converter={StaticResource BooleanInverterConverter}}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="20"/>
             <ColumnDefinition Width="22"/>
+            <ColumnDefinition Width="22"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <Image x:Name="CheckImage" 
-               Grid.Column="1"
-               VerticalAlignment="Top"
-               HorizontalAlignment="Left"
-               Margin="3"
-               Height="18"
-               Width="18" 
-               Source="{Binding Asset, Converter={StaticResource AssetObjectToSourceConverter}}" />
         <Image x:Name="DraggableImage" 
                Grid.Column="0"
                VerticalAlignment="Center"
                HorizontalAlignment="Center"
-               Margin="3"
+               Margin="1,3"
                Height="18"
                Width="18" 
-               Source="../Resources/dragable_32x32.png" 
+               Source="{Binding IsPlaceholder, Converter={StaticResource BooleanToDragableSourceConverter}}" 
                ToolTip="Drag me like a zombie!"/>
-        <Label Grid.Column="2" 
+        <Image x:Name="CheckImage" 
+               Grid.Column="1"
+               VerticalAlignment="Top"
+               HorizontalAlignment="Left"
+               Margin="3,3,0,0"
+               Height="18"
+               Width="18" >
+            <Image.Source>
+                <MultiBinding Converter="{StaticResource AssetObjectToSourceConverter}">
+                    <Binding Path="Asset"></Binding>
+                    <Binding Path="IsPlaceholder"></Binding>
+                </MultiBinding>
+            </Image.Source>
+        </Image>
+        <Button Grid.Column="2" 
+                ToolTip="Refresh me!"
+                Name="RefreshButton" 
+                Command="{Binding ShowContents, Mode=OneWay}" 
+                Margin="3,3,0,0" 
+                Cursor="Hand" 
+                Background="Transparent" 
+                Visibility="Visible" 
+                HorizontalAlignment="Left" 
+                VerticalAlignment="Top">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <StackPanel>
+                        <Image Name="image1" Height="18" Width="18" Source="../Resources/preview_32x32.png"  Visibility="Visible" />
+                        <Image Name="image2" Height="18" Width="18" Source="../Resources/previewHover_32x32.png" Visibility="Collapsed" />
+                        <Image Name="image3" Height="18" Width="18" Source="../Resources/previewDisabled_32x32.png" Visibility="Collapsed" />
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image2" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <DataTrigger Binding="{Binding Path=Asset.Name, Converter={StaticResource AssetNameToBoolConverter}}" Value="False">
+                            <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image2" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image3" Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+        <Label Grid.Column="3" 
                Content="{Binding Asset.Name, Mode=OneWay}"
                Padding="5,0" 
                VerticalAlignment="Center" 
-               VerticalContentAlignment="Center"/>
+               VerticalContentAlignment="Center" 
+               Margin="0"/>
     </Grid>
 </UserControl>

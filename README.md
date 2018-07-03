@@ -18,3 +18,13 @@ This is Zombie! An app that never dies, and keeps coming for your release files.
 
 4. Setup Zombie File Mappings:
 
+<p align="center">
+  <img src="/_info/fileMappings.png">
+</p>
+
+5. Setup Zombie Refresh Interval:
+
+<p align="center">
+  <img src="/_info/generalSettings.png">
+</p>
+

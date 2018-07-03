@@ -13,5 +13,5 @@ This is Zombie! An app that never dies, and keeps coming for your release files.
 3. Setup Zombie File Mappings: 
 
 <p align="center">
-  <img width="500" height="500" src="/_info/githubsettings.png">
+  <img src="/_info/githubsettings.png">
 </p>

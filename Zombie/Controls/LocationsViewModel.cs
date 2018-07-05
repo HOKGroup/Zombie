@@ -1,7 +1,5 @@
 ﻿#region References
 
-using System;
-using System.Collections;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Linq;
@@ -70,21 +68,14 @@ namespace Zombie.Controls
             {
                 Assets = new ObservableCollection<AssetViewModel>();
             }
+
             Assets.CollectionChanged += AssetsOnCollectionChanged;
 
             AddDirectoryPath = new RelayCommand(OnAddDirectoryPath);
             RemoveDirectoryPath = new RelayCommand(OnRemoveDirectoryPath);
         }
 
-        /// <summary>
-        /// Sets the Source Assets Count excluding Placeholders.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void AssetsOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            AssetCount = _assets.Count(x => !x.IsPlaceholder);
-        }
+        #region Command Handlers
 
         private void OnRemoveDirectoryPath()
         {
@@ -99,10 +90,26 @@ namespace Zombie.Controls
             };
             var result = dialog.ShowDialog();
 
-            LocationObject.DirectoryPath = result == DialogResult.OK 
-                ? FilePathUtils.ReplaceUserSpecificPath(dialog.SelectedPath) 
+            LocationObject.DirectoryPath = result == DialogResult.OK
+                ? FilePathUtils.ReplaceUserSpecificPath(dialog.SelectedPath)
                 : dialog.SelectedPath;
         }
+
+        #endregion
+
+        #region Event Handlers
+
+        /// <summary>
+        /// Sets the Source Assets Count excluding Placeholders. Used by the UI to set the counter label.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void AssetsOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            AssetCount = _assets.Count(x => !x.IsPlaceholder);
+        }
+
+        #endregion
 
         #region Utilities
 
@@ -180,7 +187,11 @@ namespace Zombie.Controls
             }
 
             sourceItem.Parent = targetItem.Parent;
-            if (!targetItem.Parent.Assets.Contains(sourceItem)) targetItem.Parent.Assets.Add(sourceItem);
+            if (!targetItem.Parent.Assets.Contains(sourceItem))
+            {
+                // (Konrad) We need to create a new VM here otherwise all references point to the same object causing weird UI behavior.
+                targetItem.Parent.Assets.Add(new AssetViewModel(sourceItem.Asset) { Parent = sourceItem.Parent });
+            }
 
             // (Konrad) If we are adding an item to location, we can remove placeholder
             if (targetItem.Parent.Assets.Count >= 2)

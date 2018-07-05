@@ -288,6 +288,10 @@
   <ItemGroup>
     <Resource Include="Resources\dllDisabled_32x32.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\previewOnHover_32x32.png" />
+    <Resource Include="Resources\previewOn_32x32.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>if exist "$(TargetPath).locked" del "$(TargetPath).locked"

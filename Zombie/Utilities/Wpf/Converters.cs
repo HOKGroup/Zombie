@@ -59,7 +59,38 @@ namespace Zombie.Utilities.Wpf
         }
     }
 
-    public class AssetNameToBoolConverter : IValueConverter
+    /// <summary>
+    /// Sets the Grid Row Height based on Asset count. 
+    /// </summary>
+    public class ContentCountToRowHeightConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values[0] == null || values[1] == null)
+                return new GridLength(0);
+
+            var isContentVisible = (bool)values[0];
+            var count = 0;
+            if (values[1] is int i)
+            {
+                count = i;
+            }
+
+            return isContentVisible 
+                ? new GridLength(count*24) // typical asset view is 24px
+                : new GridLength(0);
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Sets the Grid Row Width based on whether an Asset is a ZIP/RAR file.
+    /// </summary>
+    public class AssetNameToRowWidthConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -67,7 +98,27 @@ namespace Zombie.Utilities.Wpf
 
             var name = (string)value;
             var extension = Path.GetExtension(name.ToLower());
-            return (extension == ".zip" || extension == ".rar");
+            return (extension == ".zip" || extension == ".rar") 
+                ? new GridLength(18) 
+                : new GridLength(0);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Sets the Grid Row Width based on a boolean value.
+    /// </summary>
+    public class BoolToRowWidthConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return (value is bool && (bool) value) 
+                ? new GridLength(0) 
+                : new GridLength(18);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

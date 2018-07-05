@@ -1,11 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿#region References
+
+using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using Zombie.Utilities;
 using Zombie.Utilities.Wpf;
+
+#endregion
 
 namespace Zombie.Controls
 {
@@ -24,6 +29,27 @@ namespace Zombie.Controls
             set { _asset = value; RaisePropertyChanged(() => Asset); }
         }
 
+        private ObservableCollection<AssetViewModel> _contents = new ObservableCollection<AssetViewModel>();
+        public ObservableCollection<AssetViewModel> Contents
+        {
+            get { return _contents; }
+            set { _contents = value; RaisePropertyChanged(() => Contents); }
+        }
+
+        private bool _isContentVisible;
+        public bool IsContentVisible
+        {
+            get { return _isContentVisible; }
+            set { _isContentVisible = value; RaisePropertyChanged(() => IsContentVisible); }
+        }
+
+        private bool _isContent;
+        public bool IsContent
+        {
+            get { return _isContent; }
+            set { _isContent = value; RaisePropertyChanged(() => IsContent); }
+        }
+
         #endregion
 
         public AssetViewModel(AssetObject asset)
@@ -35,6 +61,10 @@ namespace Zombie.Controls
 
         private void OnShowContents()
         {
+            IsContentVisible = !IsContentVisible;
+
+            if (Contents.Any()) return;
+
             var dir = Path.Combine(Directory.GetCurrentDirectory(), "downloads");
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
 
@@ -52,12 +82,11 @@ namespace Zombie.Controls
                     return;
                 }
 
-                var contents = new List<AssetViewModel>();
                 using (var zip = ZipFile.Open(filePath, ZipArchiveMode.Read))
                 {
                     foreach (var asset in zip.Entries)
                     {
-                        contents.Add(new AssetViewModel(new AssetObject {Name = asset.Name}));
+                        Contents.Add(new AssetViewModel(new AssetObject {Name = asset.Name}) {IsContent = true});
                     }
                 }
             }
@@ -66,7 +95,6 @@ namespace Zombie.Controls
                 Console.WriteLine(e);
                 throw;
             }
-            
         }
 
         public override bool Equals(object obj)

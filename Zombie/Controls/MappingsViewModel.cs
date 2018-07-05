@@ -166,6 +166,12 @@ namespace Zombie.Controls
 
         #endregion
 
+        #region Settings Utilities
+
+        /// <summary>
+        /// Sets DestinationAssets from a Zombie Settings.
+        /// </summary>
+        /// <param name="settings">Zombie Settings.</param>
         private void PopulateDestinationFromSettings(ZombieSettings settings)
         {
             foreach (var loc in settings.DestinationAssets)
@@ -173,13 +179,17 @@ namespace Zombie.Controls
                 var newLocation = new LocationsViewModel(loc);
                 var assets =
                     new ObservableCollection<AssetViewModel>(loc.Assets.Select(x =>
-                        new AssetViewModel(x) {Parent = newLocation}));
+                        new AssetViewModel(x) { Parent = newLocation }));
                 newLocation.Assets = assets;
 
                 Locations.Add(newLocation);
             }
         }
 
+        /// <summary>
+        /// Sets Source Assets from a Zombie Settings.
+        /// </summary>
+        /// <param name="settings">Zombie Settings.</param>
         private void PopulateSourceFromSettings(ZombieSettings settings)
         {
             var loc = new LocationsViewModel(new Location
@@ -200,12 +210,15 @@ namespace Zombie.Controls
             SourceLocations.Add(loc);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
         public void UpdateSettings()
         {
             var sourceAssets = new List<AssetObject>();
             foreach (var l in SourceLocations)
             {
-                if(l.Assets.All(x => x.IsPlaceholder)) continue;
+                if (l.Assets.All(x => x.IsPlaceholder)) continue;
 
                 sourceAssets.AddRange(l.Assets.Where(x => !x.IsPlaceholder).Select(a => a.Asset));
             }
@@ -220,5 +233,7 @@ namespace Zombie.Controls
 
             Settings.DestinationAssets = locations;
         }
+
+        #endregion
     }
 }

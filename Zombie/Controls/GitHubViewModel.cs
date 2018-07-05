@@ -39,7 +39,7 @@ namespace Zombie.Controls
 
         private void OnRefreshConnection()
         {
-            Model.RetrieveRelease(Settings);
+            Model.GetLatestRelease(Settings, false);
         }
 
         private void OnWindowClosed(UserControl obj)

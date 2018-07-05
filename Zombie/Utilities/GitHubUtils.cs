@@ -17,7 +17,7 @@ namespace Zombie.Utilities
         /// <param name="settings"></param>
         /// <param name="url"></param>
         /// <param name="filePath"></param>
-        public static void DownloadAssets(ZombieSettings settings, string url, string filePath)
+        public static bool DownloadAssets(ZombieSettings settings, string url, string filePath)
         {
             // (Konrad) Apparently it's possible that new Windows updates change the standard 
             // SSL protocol to SSL3. RestSharp uses whatever current one is while GitHub server 
@@ -43,16 +43,21 @@ namespace Zombie.Utilities
                 try
                 {
                     File.WriteAllBytes(filePath, response);
+                    if (!File.Exists(filePath)) return false;
                 }
                 catch (Exception e)
                 {
                     _logger.Fatal(e.Message);
+                    return false;
                 }
             }
             else
             {
                 _logger.Error("Download failed. Less than 120 bytes were downloaded.");
+                return false;
             }
+
+            return true;
         }
     }
 }

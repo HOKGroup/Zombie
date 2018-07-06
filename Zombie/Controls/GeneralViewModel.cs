@@ -8,7 +8,8 @@ namespace Zombie.Controls
     public class GeneralViewModel : ViewModelBase
     {
         public ZombieModel Model { get; set; }
-        public RelayCommand SaveSettings { get; set; }
+        public RelayCommand SaveSettingsLocal { get; set; }
+        public RelayCommand SaveSettingsRemote { get; set; }
         public RelayCommand FrequencyChanged { get; set; }
 
         private ZombieSettings _settings;
@@ -23,8 +24,16 @@ namespace Zombie.Controls
             Settings = settings;
             Model = model;
 
-            SaveSettings = new RelayCommand(OnSaveSettings);
+            SaveSettingsLocal = new RelayCommand(OnSaveSettingsLocal);
+            SaveSettingsRemote = new RelayCommand(OnSaveSettingsRemote);
             FrequencyChanged = new RelayCommand(OnFrequencyChanged);
+        }
+
+        #region Command Handlers
+
+        private static void OnSaveSettingsRemote()
+        {
+            Messenger.Default.Send(new StoreSettings { Type = SettingsType.Remote });
         }
 
         private void OnFrequencyChanged()
@@ -35,9 +44,11 @@ namespace Zombie.Controls
             });
         }
 
-        private static void OnSaveSettings()
+        private static void OnSaveSettingsLocal()
         {
-            Messenger.Default.Send(new StoreSettings());
+            Messenger.Default.Send(new StoreSettings { Type = SettingsType.Local });
         }
+
+        #endregion
     }
 }

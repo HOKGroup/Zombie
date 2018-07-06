@@ -7,7 +7,6 @@ using System.Windows.Data;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
-using Zombie.Controls;
 using Zombie.Utilities;
 
 #endregion

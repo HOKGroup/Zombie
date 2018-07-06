@@ -98,11 +98,26 @@ namespace Zombie
             }
 
             var filePath = dialog.FileName;
-            if (!Model.StoreSettings(Settings, filePath, true))
+            switch (obj.Type)
             {
-                StatusBarManager.StatusLabel.Text =
-                    "Zombie Settings not saved! Make sure you have write access to chosen path.";
-                return;
+                case SettingsType.Local:
+                    if (!Model.StoreSettings(Settings, filePath, true))
+                    {
+                        StatusBarManager.StatusLabel.Text =
+                            "Zombie Settings not saved! Make sure you have write access to chosen path.";
+                        return;
+                    }
+                    break;
+                case SettingsType.Remote:
+                    if (!Model.StoreSettings(Settings, filePath))
+                    {
+                        StatusBarManager.StatusLabel.Text =
+                            "Zombie Settings not saved! Make sure you have write access to chosen path.";
+                        return;
+                    }
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
 
             StatusBarManager.StatusLabel.Text = "Zombie Settings safely stored!";

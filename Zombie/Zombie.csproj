@@ -258,21 +258,11 @@
     <Resource Include="Resources\gitHub_32x32.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\addHover_32x32.png" />
-    <Resource Include="Resources\add_32x32.png" />
     <Resource Include="Resources\removeHover_32x32.png" />
     <Resource Include="Resources\remove_32x32.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\refreshHover_32x32.png" />
-    <Resource Include="Resources\refresh_32x32.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Resources\removeDisabled_32x32.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\saveHover_32x32.png" />
-    <Resource Include="Resources\save_32x32.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="iconsZombie.ico" />
@@ -291,6 +281,18 @@
   <ItemGroup>
     <Resource Include="Resources\previewOnHover_32x32.png" />
     <Resource Include="Resources\previewOn_32x32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\saveLocalHover_32x32.png" />
+    <Resource Include="Resources\saveLocal_32x32.png" />
+    <Resource Include="Resources\saveRemoteHover_32x32.png" />
+    <Resource Include="Resources\saveRemote_32x32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\addHover_32x32.png" />
+    <Resource Include="Resources\add_32x32.png" />
+    <Resource Include="Resources\refreshHover_32x32.png" />
+    <Resource Include="Resources\refresh_32x32.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

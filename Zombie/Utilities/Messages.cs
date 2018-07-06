@@ -24,7 +24,8 @@ namespace Zombie.Utilities
     /// Messege sent to prompt settings to be stored.
     /// </summary>
     public class StoreSettings
-    {  
+    {
+        public SettingsType Type { get; set; }
     }
 
     /// <summary>
@@ -41,6 +42,12 @@ namespace Zombie.Utilities
     public class UpdateStatus
     {
         public string Status { get; set; }
+    }
+
+    public enum SettingsType
+    {
+        Local,
+        Remote
     }
 
     public enum ConnectionResult

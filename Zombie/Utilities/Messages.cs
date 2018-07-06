@@ -46,6 +46,7 @@ namespace Zombie.Utilities
     public enum ConnectionResult
     {
         Success,
-        Failure
+        Failure,
+        UpToDate
     }
 }

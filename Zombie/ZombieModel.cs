@@ -105,7 +105,7 @@ namespace Zombie
             var currentVersion = Properties.Settings.Default["CurrentVersion"].ToString();
             if (!release.Assets.Any() || new Version(release.TagName).CompareTo(new Version(currentVersion)) <= 0)
             {
-                UpdateUI("Your release is up to date!", ConnectionResult.Failure);
+                UpdateUI("Your release is up to date!", ConnectionResult.UpToDate, release);
                 return;
             }
 
@@ -329,11 +329,17 @@ namespace Zombie
         /// </summary>
         /// <param name="message"></param>
         /// <param name="result"></param>
-        private static void UpdateUI(string message, ConnectionResult result)
+        /// <param name="release"></param>
+        private static void UpdateUI(string message, ConnectionResult result, ReleaseObject release = null)
         {
             _logger.Info(message);
             Messenger.Default.Send(new UpdateStatus { Status = message });
-            Messenger.Default.Send(new ReleaseDownloaded { Result = result });
+            Messenger.Default.Send(new ReleaseDownloaded
+            {
+                Release = release,
+                Settings = null,
+                Result = result
+            });
         }
 
         #endregion

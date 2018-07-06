@@ -43,10 +43,10 @@
                FontSize="40" 
                FontWeight="Bold" 
                Foreground="Gray" />
-        <Button Grid.Row="1" Grid.Column="1" 
-                ToolTip="Save Zombie Settings!"
-                Name="CheckAllButton" 
-                Command="{Binding SaveSettings, Mode=OneWay}" 
+        <Button Grid.Row="1" 
+                Grid.Column="1" 
+                ToolTip="Save Zombie Settings! (local)"
+                Command="{Binding SaveSettingsLocal, Mode=OneWay}" 
                 Margin="0,0,10,0" 
                 Cursor="Hand" 
                 Background="Transparent" 
@@ -56,8 +56,33 @@
             <Button.Template>
                 <ControlTemplate TargetType="Button">
                     <StackPanel>
-                        <Image Name="image1" Height="32" Width="32" Source="../Resources/save_32x32.png"  Visibility="Visible" />
-                        <Image Name="image2" Height="32" Width="32" Source="../Resources/saveHover_32x32.png" Visibility="Collapsed" />
+                        <Image Name="image1" Height="32" Width="32" Source="../Resources/saveLocal_32x32.png"  Visibility="Visible" />
+                        <Image Name="image2" Height="32" Width="32" Source="../Resources/saveLocalHover_32x32.png" Visibility="Collapsed" />
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image2" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+        <Button Grid.Row="1" 
+                Grid.Column="1" 
+                ToolTip="Save Zombie Settings! (remote)"
+                Command="{Binding SaveSettingsRemote, Mode=OneWay}" 
+                Margin="0,0,52,0" 
+                Cursor="Hand" 
+                Background="Transparent" 
+                Visibility="Visible" 
+                HorizontalAlignment="Right" 
+                VerticalAlignment="Center">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <StackPanel>
+                        <Image Name="image1" Height="32" Width="32" Source="../Resources/saveRemote_32x32.png"  Visibility="Visible" />
+                        <Image Name="image2" Height="32" Width="32" Source="../Resources/saveRemoteHover_32x32.png" Visibility="Collapsed" />
                     </StackPanel>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">

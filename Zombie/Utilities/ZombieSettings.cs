@@ -19,6 +19,7 @@ namespace Zombie.Utilities
         /// If user fires up an app with no Arg1 set we create a new Setting and will store it locally.
         /// This is an internal flag should not be serialized.
         /// </summary>
+        [JsonIgnore]
         public bool StoreSettings { get; set; }
 
         private string _address;

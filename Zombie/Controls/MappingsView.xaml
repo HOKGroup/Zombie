@@ -76,22 +76,26 @@
                 </ControlTemplate>
             </Button.Template>
         </Button>
-        <ItemsControl ItemsSource="{Binding SourceLocations}" 
+        <ScrollViewer VerticalScrollBarVisibility="Auto" 
                       Grid.Column="0" 
                       Grid.Row="2"
                       Margin="10">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch"/>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-            <ItemsControl.ItemTemplate>
-                <DataTemplate DataType="{x:Type controls:LocationsView}">
-                    <controls:LocationsView Margin="0"/>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Grid.Column="1" Grid.Row="2"
+            <ItemsControl ItemsSource="{Binding SourceLocations}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type controls:LocationsView}">
+                        <controls:LocationsView Margin="0"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                      Grid.Column="1" 
+                      Grid.Row="2"
                       Margin="10">
             <ItemsControl ItemsSource="{Binding Locations}">
                 <ItemsControl.ItemsPanel>

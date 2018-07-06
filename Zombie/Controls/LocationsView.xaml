@@ -21,7 +21,7 @@
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="TextBox">
-                                <Border BorderBrush="#2B374F" BorderThickness="1">
+                                <Border BorderBrush="LightGray" BorderThickness="1">
                                     <TextBlock Text="{TemplateBinding Text}"  TextTrimming="CharacterEllipsis" Padding="5,0,0,0"/>
                                 </Border>
                             </ControlTemplate>
@@ -105,8 +105,6 @@
                           IsEnabled="{Binding LocationObject.IsSourceLocation, Converter={StaticResource BooleanInverterConverter}}">
             <TextBox x:Name="AccessTokenTextBox" 
                      Padding="5,0,0,0" 
-                     BorderThickness="1" 
-                     BorderBrush="#2B374F"
                      IsEnabled="False"
                      FontSize="11" 
                      Text="{Binding LocationObject.DirectoryPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
@@ -127,7 +125,6 @@
                 Margin="11,0,0,0" 
                 VerticalAlignment="top">
             <ScrollViewer VerticalScrollBarVisibility="Auto" 
-                          MaxHeight="{Binding LocationObject.MaxHeight}"
                           Margin="0,0,5,0">
                 <ItemsControl dd:DragDrop.IsDragSource="True"
                               dd:DragDrop.IsDropTarget="True" 

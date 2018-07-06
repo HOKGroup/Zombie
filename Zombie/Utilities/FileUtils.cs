@@ -11,6 +11,29 @@ namespace Zombie.Utilities
         /// <summary>
         /// 
         /// </summary>
+        /// <returns></returns>
+        public static string GetZombieDownloadsDirectory()
+        {
+            var dir = Path.Combine(Directory.GetCurrentDirectory(), "downloads");
+            if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+
+            return dir;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        public static string GetZombieTempDirectory()
+        {
+            var tempDir = Path.Combine(Path.GetTempPath(), "Zombie");
+            if (!Directory.Exists(tempDir)) Directory.CreateDirectory(tempDir);
+            return tempDir;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="source"></param>
         /// <param name="destination"></param>
         public static bool Copy(string source, string destination)

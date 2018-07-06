@@ -4,39 +4,148 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:utilities="clr-namespace:Zombie.Utilities.Wpf"
+             xmlns:componentModel="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+             xmlns:asset="clr-namespace:Zombie"
              mc:Ignorable="d" 
-             d:DesignHeight="24" d:DesignWidth="500" Height="24">
+             d:DesignHeight="200" d:DesignWidth="500">
     <UserControl.Resources>
         <utilities:AssetObjectToSourceConverter x:Key="AssetObjectToSourceConverter"/>
         <utilities:BooleanInverterConverter x:Key="BooleanInverterConverter"/>
+        <utilities:BooleanToDragableSourceConverter x:Key="BooleanToDragableSourceConverter"/>
+        <utilities:AssetNameToRowWidthConverter x:Key="AssetNameToWidthConverter"/>
+        <utilities:ContentCountToRowHeightConverter x:Key="ContentCountToRowHeightConverter"/>
+        <utilities:BoolToVisInverterConverter x:Key="BoolToVisInverterConverter"/>
+        <utilities:BoolToRowWidthConverter x:Key="BoolToWidthConverter"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
     </UserControl.Resources>
     <Grid IsEnabled="{Binding IsPlaceholder, Converter={StaticResource BooleanInverterConverter}}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="24"/>
+            <RowDefinition>
+                <RowDefinition.Height>
+                    <MultiBinding Converter="{StaticResource ContentCountToRowHeightConverter}">
+                        <Binding Path="IsContentVisible"/>
+                        <Binding Path="Contents.Count"/>
+                    </MultiBinding>
+                </RowDefinition.Height>
+            </RowDefinition>
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="20"/>
-            <ColumnDefinition Width="22"/>
+            <ColumnDefinition Width="{Binding IsContent, Converter={StaticResource BoolToWidthConverter}, Mode=TwoWay}"/>
+            <ColumnDefinition Width="18"/>
+            <ColumnDefinition Width="{Binding Asset.Name, Converter={StaticResource AssetNameToWidthConverter}, Mode=TwoWay}"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <Image x:Name="CheckImage" 
-               Grid.Column="1"
-               VerticalAlignment="Top"
-               HorizontalAlignment="Left"
-               Margin="3"
-               Height="18"
-               Width="18" 
-               Source="{Binding Asset, Converter={StaticResource AssetObjectToSourceConverter}}" />
         <Image x:Name="DraggableImage" 
                Grid.Column="0"
+               Grid.Row="0"
                VerticalAlignment="Center"
                HorizontalAlignment="Center"
-               Margin="3"
                Height="18"
                Width="18" 
-               Source="../Resources/dragable_32x32.png" 
+               Visibility="{Binding IsContent, Converter={StaticResource BoolToVisInverterConverter}}"
+               Source="{Binding IsPlaceholder, Converter={StaticResource BooleanToDragableSourceConverter}}" 
                ToolTip="Drag me like a zombie!"/>
-        <Label Grid.Column="2" 
+        <Image x:Name="FileTypeImage" 
+               Grid.Column="1"
+               Grid.Row="0"
+               VerticalAlignment="Center"
+               HorizontalAlignment="Center"
+               Height="18"
+               Width="18">
+            <Image.Source>
+                <MultiBinding Converter="{StaticResource AssetObjectToSourceConverter}">
+                    <Binding Path="Asset"></Binding>
+                    <Binding Path="IsPlaceholder"></Binding>
+                </MultiBinding>
+            </Image.Source>
+        </Image>
+        <Button Name="PreviewOffButton" 
+                Grid.Column="2" 
+                Grid.Row="0"
+                ToolTip="I want to see more!"
+                Command="{Binding ShowContents, Mode=OneWay}" 
+                Cursor="Hand" 
+                Background="Transparent" 
+                Visibility="{Binding IsContentVisible, Converter={StaticResource BoolToVisInverterConverter}}" 
+                HorizontalAlignment="Center" 
+                VerticalAlignment="Center" >
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <StackPanel>
+                        <Image Name="image1" Height="18" Width="18" Source="../Resources/preview_32x32.png"  Visibility="Visible" />
+                        <Image Name="image2" Height="18" Width="18" Source="../Resources/previewHover_32x32.png" Visibility="Collapsed" />
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image2" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+        <Button Name="PreviewOnButton" 
+                Grid.Column="2" 
+                Grid.Row="0"
+                ToolTip="Go away!"
+                Command="{Binding ShowContents, Mode=OneWay}" 
+                Cursor="Hand" 
+                Background="Transparent" 
+                Visibility="{Binding IsContentVisible, Converter={StaticResource BooleanToVisibilityConverter}}" 
+                HorizontalAlignment="Center" 
+                VerticalAlignment="Center" >
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <StackPanel>
+                        <Image Name="image1" Height="18" Width="18" Source="../Resources/previewOn_32x32.png"  Visibility="Visible" />
+                        <Image Name="image2" Height="18" Width="18" Source="../Resources/previewOnHover_32x32.png" Visibility="Collapsed" />
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image2" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+        <Label Grid.Column="3" 
+               Grid.Row="0"
                Content="{Binding Asset.Name, Mode=OneWay}"
                Padding="5,0" 
                VerticalAlignment="Center" 
-               VerticalContentAlignment="Center"/>
+               VerticalContentAlignment="Center" />
+        <Border Grid.Column="2"
+                Grid.ColumnSpan="2"
+                Grid.Row="1"
+                VerticalAlignment="Top">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" 
+                          MaxHeight="{Binding LocationObject.MaxHeight}"
+                          Margin="0,0,5,0">
+                <ItemsControl>
+                    <ItemsControl.Resources>
+                        <CollectionViewSource x:Key="Contents" Source="{Binding Contents}">
+                            <CollectionViewSource.SortDescriptions>
+                                <componentModel:SortDescription PropertyName="Asset.Name" Direction="Ascending"/>
+                            </CollectionViewSource.SortDescriptions>
+                        </CollectionViewSource>
+                    </ItemsControl.Resources>
+                    <ItemsControl.ItemsSource>
+                        <Binding Source="{StaticResource Contents}"/>
+                    </ItemsControl.ItemsSource>
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Vertical" HorizontalAlignment="Stretch"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type asset:AssetView}">
+                            <asset:AssetView Margin="0"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
     </Grid>
 </UserControl>

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using Newtonsoft.Json;
 
 namespace Zombie.Utilities
@@ -44,6 +45,12 @@ namespace Zombie.Utilities
 
         [JsonProperty("url")]
         public string Url { get; set; }
+
+        public bool IsArchive()
+        {
+            return Path.GetExtension(Name).ToLower() == ".zip" ||
+                   Path.GetExtension(Name).ToLower() == ".rar";
+        }
 
         public override bool Equals(object obj)
         {

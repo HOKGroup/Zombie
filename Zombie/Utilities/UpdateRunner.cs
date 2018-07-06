@@ -18,7 +18,7 @@ namespace Zombie
             {
                 try
                 {
-                    model.ProcessLatestRelease(settings);
+                    model.GetLatestRelease(settings, true);
                 }
                 catch (Exception e)
                 {

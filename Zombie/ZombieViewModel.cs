@@ -136,6 +136,7 @@ namespace Zombie
 
                 args.Cancel = true;
                 Win.Hide();
+                return;
             }
 
             foreach (var tab in TabItems)

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -84,252 +85,263 @@ namespace Zombie
         /// 
         /// </summary>
         /// <param name="settings"></param>
-        /// <param name="url"></param>
-        /// <param name="filePath"></param>
-        public void DownloadAssets(ZombieSettings settings, string url, string filePath)
+        /// <param name="process"></param>
+        public async void GetLatestRelease(ZombieSettings settings, bool process)
         {
-            // (Konrad) Apparently it's possible that new Windows updates change the standard 
-            // SSL protocol to SSL3. RestSharp uses whatever current one is while GitHub server 
-            // is not ready for it yet, so we have to use TLS1.2 explicitly.
-            ServicePointManager.Expect100Continue = true;
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
-            var client = new RestClient(BaseUrl);
-            var request = new RestRequest(url, Method.GET)
+            if (string.IsNullOrEmpty(settings?.AccessToken) || string.IsNullOrEmpty(settings.Address))
             {
-                OnBeforeDeserialization = x => { x.ContentType = "application/json"; }
-            };
-            request.AddHeader("Content-type", "application/json");
-            request.AddHeader("Authorization", "Token " + settings.AccessToken);
-            request.AddHeader("Accept", "application/octet-stream");
-            request.RequestFormat = DataFormat.Json;
+                UpdateUI("Connection failed!", ConnectionResult.Failure);
+                return;
+            }
 
-            // (Konrad) We use 120 because even when it fails there are always some
-            // bytes that get returned with the error message.
-            var response = client.DownloadData(request);
-            if (response.Length > 120)
+            var response = await GetLatestRelease(settings);
+            if (response.StatusCode != HttpStatusCode.OK)
             {
-                try
+                UpdateUI("Connection failed!", ConnectionResult.Failure);
+                return;
+            }
+
+            var release = response.Data;
+            var currentVersion = Properties.Settings.Default["CurrentVersion"].ToString();
+            if (!release.Assets.Any() || new Version(release.TagName).CompareTo(new Version(currentVersion)) <= 0)
+            {
+                UpdateUI("Your release is up to date!", ConnectionResult.UpToDate, release);
+                return;
+            }
+
+            // the manual refresh button doesn't need to trigger the full update
+            if (!process)
+            {
+                Messenger.Default.Send(new ReleaseDownloaded
                 {
-                    File.WriteAllBytes(filePath, response);
-                }
-                catch (Exception e)
+                    Release = release,
+                    Result = ConnectionResult.Success
+                });
+                return;
+            }
+
+            var dir = FileUtils.GetZombieDownloadsDirectory();
+            var downloaded = 0;
+            foreach (var asset in release.Assets)
+            {
+                var filePath = Path.Combine(dir, asset.Name);
+                if (GitHubUtils.DownloadAssets(settings, asset.Url, filePath)) downloaded++;
+            }
+
+            if (downloaded != release.Assets.Count)
+            {
+                UpdateUI("Failed to download assets!", ConnectionResult.Failure);
+                return;
+            }
+
+            // (Konrad) Let's get updated settings, they might be local, or remote.
+            // We need latest settings since there might be changes to the target locations.
+            ZombieSettings newSettings;
+            if (File.Exists(settings.SettingsLocation))
+            {
+                if (!SettingsUtils.TryGetStoredSettings(settings.SettingsLocation, out newSettings))
                 {
-                    _logger.Fatal(e.Message);
+                    UpdateUI("Could not get latest local Zombie Settings!", ConnectionResult.Failure);
+                    return;
                 }
             }
             else
             {
-                _logger.Error("Download failed. Less than 120 bytes were downloaded.");
+                if (!SettingsUtils.TryGetRemoteSettings(settings.SettingsLocation, out newSettings))
+                {
+                    UpdateUI("Could not get latest remote Zombie Settings!", ConnectionResult.Failure);
+                    return;
+                }
             }
+
+            // (Konrad) Let's make sure that we own the files that we are trying to override
+            var fileStreams = new Dictionary<string, FileStream>();
+            foreach (var loc in newSettings.DestinationAssets)
+            {
+                foreach (var asset in loc.Assets)
+                {
+                    if (asset.IsArchive())
+                    {
+                        if (LockAllContents(settings, asset, loc.DirectoryPath, out var zippedStreams))
+                        {
+                            fileStreams = fileStreams.Concat(zippedStreams).GroupBy(x => x.Key)
+                                .ToDictionary(x => x.Key, x => x.First().Value);
+                            continue;
+                        }
+
+                        UpdateUI("Could not get access to all ZIP contents!", ConnectionResult.Failure);
+                        return;
+                    }
+
+                    var to = Path.Combine(FilePathUtils.CreateUserSpecificPath(loc.DirectoryPath), asset.Name);
+                    try
+                    {
+                        var fs = new FileStream(to, FileMode.OpenOrCreate, FileAccess.ReadWrite,
+                            FileShare.None);
+                        fileStreams.Add(to, fs);
+                    }
+                    catch (Exception e)
+                    {
+                        UpdateUI(e.Message, ConnectionResult.Failure);
+                        return;
+                    }
+                }
+            }
+
+            // (Konrad) Move assets to target locations
+            foreach (var loc in newSettings.DestinationAssets)
+            {
+                foreach (var asset in loc.Assets)
+                {
+                    if (asset.IsArchive())
+                    {
+                        if (ExtractToDirectory(asset, loc.DirectoryPath, fileStreams)) continue;
+
+                        UpdateUI("Could not override existing ZIP contents!", ConnectionResult.Failure);
+                        return;
+                    }
+
+                    var from = Path.Combine(dir, asset.Name);
+                    var to = Path.Combine(FilePathUtils.CreateUserSpecificPath(loc.DirectoryPath), asset.Name);
+
+                    // make sure that file is not locked
+                    var stream = fileStreams[to];
+                    stream?.Close();
+
+                    if (FileUtils.Copy(@from, @to)) continue;
+
+                    UpdateUI("Could not override existing file!", ConnectionResult.Failure);
+                    return;
+                }
+            }
+
+            // (Konrad) Remove temporary assets
+            if (!FileUtils.DeleteDirectory(dir))
+            {
+                UpdateUI("Could not remove temporary download assets!", ConnectionResult.Failure);
+                return;
+            }
+
+            // (Konrad) Update UI and save current version
+            Properties.Settings.Default.CurrentVersion = release.TagName;
+            Properties.Settings.Default.Save();
+
+            _logger.Info("Successfully updated to version: " + release.TagName);
+            Messenger.Default.Send(new UpdateStatus { Status = "Successfully updated to version: " + release.TagName });
+            Messenger.Default.Send(new ReleaseDownloaded
+            {
+                Release = release,
+                Result = ConnectionResult.Success
+            });
         }
+
+        #region Utilities
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="settings"></param>
-        public async void RetrieveRelease(ZombieSettings settings)
+        /// <param name="asset"></param>
+        /// <param name="destinationDir"></param>
+        /// <param name="streams"></param>
+        /// <returns></returns>
+        private static bool LockAllContents(ZombieSettings settings, AssetObject asset, string destinationDir, out Dictionary<string, FileStream> streams)
         {
-            if (!string.IsNullOrEmpty(settings?.AccessToken) && 
-                !string.IsNullOrEmpty(settings.Address))
+            streams = new Dictionary<string, FileStream>();
+            var dir = FileUtils.GetZombieDownloadsDirectory();
+            var filePath = Path.Combine(dir, asset.Name);
+
+            if (!GitHubUtils.DownloadAssets(settings, asset.Url, filePath)) return false;
+
+            try
             {
-                var response = await GetLatestRelease(settings);
-                if (response.StatusCode == HttpStatusCode.OK)
+                using (var zip = ZipFile.Open(filePath, ZipArchiveMode.Read))
                 {
-                    var release = response.Data;
-
-                    var currentVersion = settings.LatestRelease?.TagName ?? "0.0.0.0";
-                    if (new Version(release.TagName).CompareTo(new Version(currentVersion)) <= 0)
+                    foreach (var file in zip.Entries)
                     {
-                        _logger.Info("Your release is up to date!");
-                        Messenger.Default.Send(new UpdateStatus { Status = "Your release is up to date!" });
-                        return;
+                        var completeFileName = Path.Combine(FilePathUtils.CreateUserSpecificPath(destinationDir), file.FullName);
+                        if (file.Name == string.Empty || !Directory.Exists(Path.GetDirectoryName(completeFileName)))
+                            continue;
+
+                        var fs = new FileStream(completeFileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+                        streams.Add(completeFileName, fs);
                     }
-
-                    if (!release.Assets.Any())
-                    {
-                        _logger.Info("Connection succeeded!");
-                        Messenger.Default.Send(new UpdateStatus { Status = "Connection succeeded!" });
-                        return;
-                    }
-
-                    Messenger.Default.Send(new ReleaseDownloaded
-                    {
-                        Release = release,
-                        Result = ConnectionResult.Success
-                    });
-                    return;
                 }
             }
+            catch (Exception e)
+            {
+                _logger.Fatal(e.Message);
+                return false;
+            }
 
-            _logger.Info("Connection failed!");
-            Messenger.Default.Send(new UpdateStatus { Status = "Connection failed!" });
-            Messenger.Default.Send(new ReleaseDownloaded { Result = ConnectionResult.Failure });
+            return true;
         }
 
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="settings"></param>
-        public async void ProcessLatestRelease(ZombieSettings settings)
+        /// <param name="asset"></param>
+        /// <param name="destinationDir"></param>
+        /// <param name="streams"></param>
+        /// <returns></returns>
+        private static bool ExtractToDirectory(AssetObject asset, string destinationDir, IReadOnlyDictionary<string, FileStream> streams)
         {
-            if (!string.IsNullOrEmpty(settings?.AccessToken) &&
-                !string.IsNullOrEmpty(settings.Address))
+            var dir = FileUtils.GetZombieDownloadsDirectory();
+            var filePath = Path.Combine(dir, asset.Name);
+            if (!File.Exists(filePath)) return false;
+
+            try
             {
-                var response = await GetLatestRelease(settings);
-                if (response.StatusCode == HttpStatusCode.OK)
+                using (var zip = ZipFile.Open(filePath, ZipArchiveMode.Read))
                 {
-                    var release = response.Data;
-
-                    var currentVersion = settings.LatestRelease?.TagName ?? "0.0.0.0";
-                    if (new Version(release.TagName).CompareTo(new Version(currentVersion)) <= 0)
+                    foreach (var file in zip.Entries)
                     {
-                        _logger.Info("Your release is up to date!");
-                        Messenger.Default.Send(new UpdateStatus { Status = "Your release is up to date!" });
-                        return;
-                    }
+                        var completeFileName = Path.Combine(FilePathUtils.CreateUserSpecificPath(destinationDir), file.FullName);
 
-                    if (!release.Assets.Any())
-                    {
-                        _logger.Info("No assets found!");
-                        Messenger.Default.Send(new UpdateStatus { Status = "No assets found!" });
-                        return;
-                    }
+                        if (file.Name == string.Empty) continue; // dir entry
 
-                    var dir = Path.Combine(Directory.GetCurrentDirectory(), "downloads");
-                    if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+                        // make sure that file is not locked
+                        var stream = streams.ContainsKey(completeFileName) ? streams[completeFileName] : null;
+                        stream?.Close();
 
-                    var downloaded = 0;
-                    foreach (var asset in release.Assets)
-                    {
-                        try
+                        if (stream == null)
                         {
-                            var filePath = Path.Combine(dir, asset.Name);
-
-                            // download
-                            DownloadAssets(settings, asset.Url, filePath);
-
-                            // verify
-                            if (File.Exists(filePath))
-                            {
-                                downloaded++;
-                                continue;
-                            }
-
-                            _logger.Error("Failed to download an asset! " + filePath);
+                            // we didn't add it to streams which means that directory didn't exist
+                            var path = Path.GetDirectoryName(completeFileName);
+                            if (!Directory.Exists(path)) Directory.CreateDirectory(path);
                         }
-                        catch (Exception e)
-                        {
-                            _logger.Fatal(e.Message);
-                        }
+
+                        file.ExtractToFile(completeFileName, true);
                     }
-
-                    if (downloaded != release.Assets.Count)
-                    {
-                        _logger.Info("Downloaded (" + downloaded + ")/(" + release.Assets.Count + ").");
-                        Messenger.Default.Send(new UpdateStatus { Status = "Failed to download assets!" });
-                        Messenger.Default.Send(new ReleaseDownloaded { Result = ConnectionResult.Failure });
-                        return;
-                    }
-
-                    // (Konrad) Let's get updated settings, they might be local, or remote.
-                    // We need latest settings since there might be changes to the target locations.
-                    ZombieSettings newSettings;
-                    if (File.Exists(settings.SettingsLocation))
-                    {
-                        if (!SettingsUtils.TryGetStoredSettings(settings.SettingsLocation, out newSettings))
-                        {
-                            _logger.Error("Could not get latest local Zombie Settings!");
-                            Messenger.Default.Send(new UpdateStatus { Status = "Could not get latest local Zombie Settings!" });
-                            Messenger.Default.Send(new ReleaseDownloaded { Result = ConnectionResult.Failure });
-                            return;
-                        }
-                    }
-                    else
-                    {
-                        if (!SettingsUtils.TryGetRemoteSettings(settings.SettingsLocation, out newSettings))
-                        {
-                            _logger.Error("Could not get latest remote Zombie Settings!");
-                            Messenger.Default.Send(new UpdateStatus { Status = "Could not get latest remote Zombie Settings!" });
-                            Messenger.Default.Send(new ReleaseDownloaded { Result = ConnectionResult.Failure });
-                            return;
-                        }
-                    }
-
-                    // (Konrad) Let's make sure that we own the files that we are trying to override
-                    var fileStreams = new Dictionary<string, FileStream>();
-                    foreach (var loc in newSettings.DestinationAssets)
-                    {
-                        foreach (var asset in loc.Assets)
-                        {
-                            var to = Path.Combine(FilePathUtils.CreateUserSpecificPath(loc.DirectoryPath), asset.Name);
-                            try
-                            {
-                                var fs = new FileStream(to, FileMode.OpenOrCreate, FileAccess.ReadWrite,
-                                    FileShare.None);
-                                fileStreams.Add(to, fs);
-                            }
-                            catch (IOException e)
-                            {
-                                // this one we can terminate because it means that we can't access the file
-                                _logger.Error("Could not get access to the destination asset. Terminating.");
-                                Messenger.Default.Send(new UpdateStatus { Status = "Could not get access to the destination asset. Terminating..." });
-                                Messenger.Default.Send(new ReleaseDownloaded { Result = ConnectionResult.Failure });
-                                return;
-                            }
-                            catch (Exception e)
-                            {
-                                _logger.Error(e.Message);
-                                Messenger.Default.Send(new UpdateStatus { Status = e.Message });
-                                Messenger.Default.Send(new ReleaseDownloaded { Result = ConnectionResult.Failure });
-                                return;
-                            }
-                        }
-                    }
-
-                    // (Konrad) Move assets to target locations
-                    foreach (var loc in newSettings.DestinationAssets)
-                    {
-                        foreach (var asset in loc.Assets)
-                        {
-                            var from = Path.Combine(dir, asset.Name);
-                            var to = Path.Combine(FilePathUtils.CreateUserSpecificPath(loc.DirectoryPath), asset.Name);
-
-                            // make sure that file is not locked
-                            var stream = fileStreams[to];
-                            stream?.Close();
-
-                            if (FileUtils.Copy(from, to)) continue;
-
-                            Messenger.Default.Send(new UpdateStatus { Status = "Could not override existing file!" });
-                            Messenger.Default.Send(new ReleaseDownloaded { Result = ConnectionResult.Failure });
-                            return;
-                        }
-                    }
-
-                    // (Konrad) Remove temporary assets
-                    if (!FileUtils.DeleteDirectory(dir))
-                    {
-                        Messenger.Default.Send(new UpdateStatus { Status = "Could not remove temporary download assets!" });
-                        Messenger.Default.Send(new ReleaseDownloaded { Result = ConnectionResult.Failure });
-                        return;
-                    }
-
-                    // (Konrad) Update UI
-                    _logger.Info("Successfully updated to version: " + release.TagName);
-                    Messenger.Default.Send(new UpdateStatus { Status = "Successfully updated to version: " + release.TagName });
-                    Messenger.Default.Send(new ReleaseDownloaded
-                    {
-                        Release = release,
-                        Result = ConnectionResult.Success
-                    });
-                    return;
                 }
             }
+            catch (Exception e)
+            {
+                _logger.Fatal(e.Message);
+                return false;
+            }
 
-            _logger.Info("Connection failed!");
-            Messenger.Default.Send(new UpdateStatus { Status = "Connection failed!" });
-            Messenger.Default.Send(new ReleaseDownloaded { Result = ConnectionResult.Failure });
+            return true;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <param name="result"></param>
+        /// <param name="release"></param>
+        private static void UpdateUI(string message, ConnectionResult result, ReleaseObject release = null)
+        {
+            _logger.Info(message);
+            Messenger.Default.Send(new UpdateStatus { Status = message });
+            Messenger.Default.Send(new ReleaseDownloaded
+            {
+                Release = release,
+                Settings = null,
+                Result = result
+            });
+        }
+
+        #endregion
     }
 }

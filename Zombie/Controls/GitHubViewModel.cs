@@ -9,7 +9,6 @@ namespace Zombie.Controls
     public class GitHubViewModel : ViewModelBase
     {
         public ZombieModel Model { get; set; }
-        public RelayCommand<UserControl> WindowClosed { get; set; }
         public RelayCommand RefreshConnection { get; set; }
 
         private ZombieSettings _settings;
@@ -24,28 +23,30 @@ namespace Zombie.Controls
             Settings = settings;
             Model = model;
 
-            WindowClosed = new RelayCommand<UserControl>(OnWindowClosed);
             RefreshConnection = new RelayCommand(OnRefreshConnection);
 
             Messenger.Default.Register<ReleaseDownloaded>(this, OnReleaseDownloaded);
         }
 
+        #region Message Handlers
+
         private void OnReleaseDownloaded(ReleaseDownloaded obj)
         {
-            Settings.LatestRelease = obj.Result == ConnectionResult.Failure 
-                ? null 
+            Settings.LatestRelease = obj.Result == ConnectionResult.Failure
+                ? null
                 : obj.Release;
         }
 
+        #endregion
+
+        #region Command Handlers
+
         private void OnRefreshConnection()
         {
-            Model.RetrieveRelease(Settings);
+            Model.GetLatestRelease(Settings, false);
         }
 
-        private void OnWindowClosed(UserControl obj)
-        {
-            // (Konrad) Unregisters any Messanger handlers.
-            Cleanup();
-        }
+        #endregion
+
     }
 }

@@ -16,7 +16,14 @@ namespace Zombie.Controls
         private void AccessTokenTextBox_OnPasswordChanged(object sender, RoutedEventArgs e)
         {
             if (DataContext != null)
-            { ((dynamic)DataContext).Settings.AccessToken = ((PasswordBox)sender).Password; }
+            {
+                ((dynamic)DataContext).Settings.AccessToken = ((PasswordBox)sender).Password;
+            }
+        }
+
+        private void GitHubView_OnLoaded(object sender, RoutedEventArgs e)
+        {
+            AccessTokenTextBox.Password = ((GitHubViewModel) DataContext).Settings.AccessToken;
         }
     }
 }

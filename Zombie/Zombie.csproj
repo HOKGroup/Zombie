@@ -90,6 +90,7 @@
     <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Web" />
     <Reference Include="System.Windows.Forms" />
@@ -140,14 +141,10 @@
     <Compile Include="Utilities\EnumHelper.cs" />
     <Compile Include="Utilities\Extensions.cs" />
     <Compile Include="Utilities\FilePathUtils.cs" />
-    <Compile Include="Utilities\FileUtils.cs" />
     <Compile Include="Utilities\FrequencyUtils.cs" />
-    <Compile Include="Utilities\GitHubWrappers.cs" />
     <Compile Include="Utilities\Messages.cs" />
     <Compile Include="Utilities\RegistryUtils.cs" />
-    <Compile Include="Utilities\SettingsUtils.cs" />
     <Compile Include="Utilities\UserUtils.cs" />
-    <Compile Include="Utilities\ZombieSettings.cs" />
     <Compile Include="Utilities\Wpf\StatusBarManager.cs" />
     <Compile Include="Utilities\Wpf\WatermarkAdorner.cs" />
     <Compile Include="Utilities\Wpf\WatermarkService.cs" />
@@ -293,6 +290,12 @@
     <Resource Include="Resources\add_32x32.png" />
     <Resource Include="Resources\refreshHover_32x32.png" />
     <Resource Include="Resources\refresh_32x32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ZombieUtilities\ZombieUtilities.csproj">
+      <Project>{84E63918-6D2C-42D9-8F2E-F43B70327F36}</Project>
+      <Name>ZombieUtilities</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

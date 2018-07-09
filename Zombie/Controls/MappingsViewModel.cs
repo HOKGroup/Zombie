@@ -227,7 +227,13 @@ namespace Zombie.Controls
             var locations = new List<Location>();
             foreach (var l in Locations)
             {
-                locations.Add(new Location(l));
+                locations.Add(new Location
+                {
+                    IsSourceLocation = l.LocationObject.IsSourceLocation,
+                    MaxHeight = l.LocationObject.MaxHeight,
+                    DirectoryPath = l.LocationObject.DirectoryPath,
+                    Assets = l.Assets.Where(x => !x.IsPlaceholder).Select(x => x.Asset).ToList()
+                });
             }
 
             Settings.DestinationAssets = locations;

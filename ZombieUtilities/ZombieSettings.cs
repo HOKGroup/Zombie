@@ -3,7 +3,8 @@ using System.ComponentModel;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-using Zombie.Controls;
+//using Zombie.Controls;
+using ZombieUtilities;
 
 namespace Zombie.Utilities
 {
@@ -132,13 +133,13 @@ namespace Zombie.Utilities
         {
         }
 
-        public Location(LocationsViewModel vm)
-        {
-            IsSourceLocation = vm.LocationObject.IsSourceLocation;
-            MaxHeight = vm.LocationObject.MaxHeight;
-            DirectoryPath = vm.LocationObject.DirectoryPath;
-            Assets = vm.Assets.Where(x => !x.IsPlaceholder).Select(x => x.Asset).ToList();
-        }
+        //public Location(LocationsViewModel vm)
+        //{
+        //    IsSourceLocation = vm.LocationObject.IsSourceLocation;
+        //    MaxHeight = vm.LocationObject.MaxHeight;
+        //    DirectoryPath = vm.LocationObject.DirectoryPath;
+        //    Assets = vm.Assets.Where(x => !x.IsPlaceholder).Select(x => x.Asset).ToList();
+        //}
 
         public event PropertyChangedEventHandler PropertyChanged;
         private void RaisePropertyChanged(string info)

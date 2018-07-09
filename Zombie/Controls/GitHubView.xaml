@@ -6,6 +6,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:utilities="clr-namespace:Zombie.Utilities.Wpf"
              mc:Ignorable="d" 
+             Loaded="GitHubView_OnLoaded"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <Style TargetType="TextBox">

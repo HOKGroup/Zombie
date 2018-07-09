@@ -48,4 +48,9 @@ namespace Zombie.Controls
         #endregion
 
     }
+
+    public enum YourMethods
+    {
+        methodX = 128
+    };
 }

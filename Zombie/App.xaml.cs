@@ -1,13 +1,7 @@
-﻿#region References
-
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.ServiceModel;
 using System.Windows;
-using NLog;
 using Zombie.Utilities;
-
-#endregion
+using ZombieUtilities;
 
 namespace Zombie
 {
@@ -16,80 +10,41 @@ namespace Zombie
     /// </summary>
     public partial class App
     {
-        private static Logger _logger = LogManager.GetCurrentClassLogger();
         public static ZombieSettings Settings { get; set; }
+        public static ZombieDispatcher ZombieDispatcher { get; set; } = new ZombieDispatcher();
 
         private void Application_Startup(object sender, StartupEventArgs e)
         {
-            var arg1 = GetRemoteSettingsPath(e.Args);
-            var local = File.Exists(arg1);
-            if (!string.IsNullOrEmpty(arg1) && !local)
-            {
-                // (Konrad) Arg1 is a path that doesn't exist locally so it is likely
-                // a remote file location (HTTP).
-                if (SettingsUtils.TryGetRemoteSettings(arg1, out var settings))
-                {
-                    Settings = settings;
-                    Settings.AccessToken = GetAccessToken(e.Args);
-                    Settings.SettingsLocation = arg1;
-                    Settings.StoreSettings = false;
-                }
-                else
-                {
-                    // (Konrad) We have a path in the Arg1 that doesn't exist or failed to 
-                    // deserialize so we can treat it as if it didn't exist and override it on close.
-                    Settings = new ZombieSettings
-                    {
-                        SettingsLocation = arg1,
-                        StoreSettings = true
-                    };
-                }
-            }
-            else if (!string.IsNullOrEmpty(arg1) && local)
-            {
-                // (Konrad) Arg1 exists on a user drive or network drive.
-                Settings = SettingsUtils.TryGetStoredSettings(arg1, out var settings)
-                    ? settings
-                    : new ZombieSettings();
-                Settings.SettingsLocation = arg1;
+            var pipeFactory = new ChannelFactory<IZombieTalker>(new NetNamedPipeBinding(),
+                new EndpointAddress("net.pipe://localhost/PipeGetSettings"));
+            ZombieDispatcher.GetSettingsTalker = pipeFactory.CreateChannel();
 
-                // (Konrad) If AccessToken was in the Settings file we can skip this.
-                // If it wasn't it should be set with the Arg2
-                if (string.IsNullOrEmpty(Settings.AccessToken)) Settings.AccessToken = GetAccessToken(e.Args);
-            }
-            else
-            {
-                Settings = new ZombieSettings
-                {
-                    SettingsLocation = Path.Combine(Directory.GetCurrentDirectory(), "ZombieSettings.json"),
-                    StoreSettings = true
-                };
-            }
+            var pipeFactory1 = new ChannelFactory<IZombieTalker>(new NetNamedPipeBinding(),
+                new EndpointAddress("net.pipe://localhost/PipeSetSettings"));
+            ZombieDispatcher.SetSettingsTalker = pipeFactory1.CreateChannel();
 
-            // Create the startup window
+            // (Konrad) Get latest settings from ZombieService
+            Settings = ZombieDispatcher.GetSettingsTalker.GetSettings();
+            //var result = ZombieDispatcher.SetSettingsTalker.SetSettings(Settings);
+
+            // (Konrad) Create the startup window
             var m = new ZombieModel();
-            var vm = new ZombieViewModel(Settings, m);
+            var vm = new ZombieViewModel(Settings, m)
+            {
+                Runner = new UpdateRunner(Settings, m)
+            };
             var wnd = new ZombieView
             {
                 DataContext = vm
             };
-            
-            wnd.ShowInTaskbar = true;
-            vm.Startup(wnd);
+            vm.Win = wnd;
+            wnd.Show();
         }
+    }
 
-        #region Utilities
-
-        private static string GetRemoteSettingsPath(IReadOnlyList<string> args)
-        {
-            return args.Any() ? args[0] : string.Empty;
-        }
-
-        private static string GetAccessToken(IReadOnlyList<string> args)
-        {
-            return args.Count > 1 ? args[1] : string.Empty;
-        }
-
-        #endregion
+    public class ZombieDispatcher
+    {
+        public IZombieTalker GetSettingsTalker { get; set; }
+        public IZombieTalker SetSettingsTalker { get; set; }
     }
 }

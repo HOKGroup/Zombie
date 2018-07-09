@@ -3,7 +3,6 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
 using GalaSoft.MvvmLight;
@@ -23,10 +22,10 @@ namespace Zombie
         #region Properties
 
         private ZombieModel Model { get; set; }
-        private UpdateRunner Runner { get; set; }
-        private Window Win { get; set; }
         private bool Cancel { get; set; } = true;
         private TextBlock Control { get; set; }
+        public Window Win { get; set; }
+        public UpdateRunner Runner { get; set; }
         public ObservableCollection<TabItem> TabItems { get; set; }
         public RelayCommand<CancelEventArgs> WindowClosing { get; set; }
         public RelayCommand<Window> WindowLoaded { get; set; }
@@ -185,64 +184,6 @@ namespace Zombie
             // (Konrad) Store reference to UI Control. It will be needed when
             // settings status messages from a pool thread.
             Control = ((ZombieView) win).statusLabel;
-        }
-
-        #endregion
-
-        #region Startup
-
-        /// <summary>
-        /// Method that will by default dock the Window in a System Menu and hide the window.
-        /// </summary>
-        /// <param name="win">Main Control Window.</param>
-        public void Startup(Window win)
-        {
-            Win = win;
-
-            var ni = new System.Windows.Forms.NotifyIcon();
-            var sri = Application.GetResourceStream(
-                new Uri("pack://application:,,,/Resources/iconsZombie.ico"));
-            if (sri != null)
-            {
-                using (var s = sri.Stream)
-                {
-                    ni.Icon = new Icon(s);
-                }
-            }
-            ni.Visible = true;
-            ni.DoubleClick += delegate
-            {
-                if (!UserUtils.IsAdministrator()) return;
-
-                win.Show();
-                win.WindowState = WindowState.Normal;
-            };
-
-            // (Konrad) Add context menu. We are using Forms namespaces here.
-            var exit = new System.Windows.Forms.MenuItem("Exit");
-            exit.Click += OnExit;
-
-            var settings = new System.Windows.Forms.MenuItem("Settings (Admin)");
-            settings.Click += OnSettings;
-
-            ni.ContextMenu = new System.Windows.Forms.ContextMenu(new[] { exit, settings });
-
-            // (Konrad) Launch the UpdateRunner to check for updates.
-            Runner = new UpdateRunner(Settings, Model);
-        }
-
-        private void OnSettings(object sender, EventArgs e)
-        {
-            if (Win == null || !UserUtils.IsAdministrator()) return;
-
-            Win.Show();
-            Win.WindowState = WindowState.Normal;
-        }
-
-        private void OnExit(object sender, EventArgs e)
-        {
-            Cancel = false;
-            Win?.Close();
         }
 
         #endregion

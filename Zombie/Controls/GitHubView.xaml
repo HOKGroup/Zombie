@@ -43,9 +43,9 @@
                FontWeight="Bold" 
                Foreground="Gray" />
         <Button Grid.Row="1" Grid.Column="1" 
-                ToolTip="Refresh me!"
+                ToolTip="Update!"
                 Name="RefreshButton" 
-                Command="{Binding RefreshConnection, Mode=OneWay}" 
+                Command="{Binding Update, Mode=OneWay}" 
                 Margin="0,0,10,0" 
                 Cursor="Hand" 
                 Background="Transparent" 

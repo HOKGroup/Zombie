@@ -58,7 +58,7 @@ namespace Zombie
         /// </summary>
         /// <param name="settings"></param>
         /// <returns></returns>
-        private static async Task<IRestResponse<ReleaseObject>> GetLatestRelease(ZombieSettings settings)
+        private static async Task<IRestResponse<ReleaseObject>> GetLatestReleaseFromGitHub(ZombieSettings settings)
         {
             // (Konrad) Apparently it's possible that new Windows updates change the standard 
             // SSL protocol to SSL3. RestSharp uses whatever current one is while GitHub server 
@@ -85,8 +85,7 @@ namespace Zombie
         /// 
         /// </summary>
         /// <param name="settings"></param>
-        /// <param name="process"></param>
-        public async void GetLatestRelease(ZombieSettings settings, bool process)
+        public async void GetLatestRelease(ZombieSettings settings)
         {
             if (string.IsNullOrEmpty(settings?.AccessToken) || string.IsNullOrEmpty(settings.Address))
             {
@@ -94,7 +93,7 @@ namespace Zombie
                 return;
             }
 
-            var response = await GetLatestRelease(settings);
+            var response = await GetLatestReleaseFromGitHub(settings);
             if (response.StatusCode != HttpStatusCode.OK)
             {
                 UpdateUI("Connection failed!", ConnectionResult.Failure);
@@ -106,17 +105,6 @@ namespace Zombie
             if (!release.Assets.Any() || new Version(release.TagName).CompareTo(new Version(currentVersion)) <= 0)
             {
                 UpdateUI("Your release is up to date!", ConnectionResult.UpToDate, release);
-                return;
-            }
-
-            // the manual refresh button doesn't need to trigger the full update
-            if (!process)
-            {
-                Messenger.Default.Send(new ReleaseDownloaded
-                {
-                    Release = release,
-                    Result = ConnectionResult.Success
-                });
                 return;
             }
 

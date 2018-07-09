@@ -1,5 +1,4 @@
-﻿using System.Windows.Controls;
-using GalaSoft.MvvmLight;
+﻿using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using Zombie.Utilities;
@@ -9,7 +8,7 @@ namespace Zombie.Controls
     public class GitHubViewModel : ViewModelBase
     {
         public ZombieModel Model { get; set; }
-        public RelayCommand RefreshConnection { get; set; }
+        public RelayCommand Update { get; set; }
 
         private ZombieSettings _settings;
         public ZombieSettings Settings
@@ -23,7 +22,7 @@ namespace Zombie.Controls
             Settings = settings;
             Model = model;
 
-            RefreshConnection = new RelayCommand(OnRefreshConnection);
+            Update = new RelayCommand(OnUpdate);
 
             Messenger.Default.Register<ReleaseDownloaded>(this, OnReleaseDownloaded);
         }
@@ -41,9 +40,9 @@ namespace Zombie.Controls
 
         #region Command Handlers
 
-        private void OnRefreshConnection()
+        private void OnUpdate()
         {
-            Model.GetLatestRelease(Settings, false);
+            Model.GetLatestRelease(Settings);
         }
 
         #endregion

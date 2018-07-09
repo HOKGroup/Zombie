@@ -1,4 +1,6 @@
-﻿
+﻿using System.Windows;
+using System.Windows.Controls;
+
 namespace Zombie.Controls
 {
     /// <summary>
@@ -9,6 +11,12 @@ namespace Zombie.Controls
         public GitHubView()
         {
             InitializeComponent();
+        }
+
+        private void AccessTokenTextBox_OnPasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (DataContext != null)
+            { ((dynamic)DataContext).Settings.AccessToken = ((PasswordBox)sender).Password; }
         }
     }
 }

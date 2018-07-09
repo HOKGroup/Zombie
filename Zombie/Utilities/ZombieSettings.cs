@@ -26,7 +26,7 @@ namespace Zombie.Utilities
         public string Address
         {
             get { return _address; }
-            set { _address = value; RaisePropertyChanged("Address"); }
+            set { _address = value.TrimLastCharacter("/"); RaisePropertyChanged("Address"); }
         }
 
         private string _accessToken;

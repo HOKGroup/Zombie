@@ -1,9 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
-//using Zombie.Controls;
 using ZombieUtilities;
 
 namespace Zombie.Utilities
@@ -128,19 +126,6 @@ namespace Zombie.Utilities
             set { _assets = value; RaisePropertyChanged("Assets"); }
         }
 
-        [JsonConstructor]
-        public Location()
-        {
-        }
-
-        //public Location(LocationsViewModel vm)
-        //{
-        //    IsSourceLocation = vm.LocationObject.IsSourceLocation;
-        //    MaxHeight = vm.LocationObject.MaxHeight;
-        //    DirectoryPath = vm.LocationObject.DirectoryPath;
-        //    Assets = vm.Assets.Where(x => !x.IsPlaceholder).Select(x => x.Asset).ToList();
-        //}
-
         public event PropertyChangedEventHandler PropertyChanged;
         private void RaisePropertyChanged(string info)
         {
@@ -150,8 +135,10 @@ namespace Zombie.Utilities
 
     public enum Frequency
     {
-        [Description("1min")] //testing only
+#if DEBUG
+        [Description("1min")]
         min1,
+#endif
         [Description("15min")]
         min15,
         [Description("30min")]

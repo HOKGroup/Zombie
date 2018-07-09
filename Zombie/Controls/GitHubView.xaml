@@ -101,18 +101,19 @@
                 </TextBox>
             </AdornerDecorator>
             <AdornerDecorator Margin="10,17,10,0">
-                <TextBox x:Name="AccessTokenTextBox" 
-                         Padding="10,0,0,0" 
-                         BorderThickness="1" 
-                         BorderBrush="#2B374F"
-                         FontSize="16" 
-                         Text="{Binding Settings.AccessToken, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                <PasswordBox x:Name="AccessTokenTextBox" 
+                             Padding="10,0,0,0" 
+                             BorderThickness="1" 
+                             BorderBrush="#2B374F"
+                             PasswordChar="*"
+                             FontSize="16"
+                             PasswordChanged="AccessTokenTextBox_OnPasswordChanged">
                     <utilities:WatermarkService.Watermark>
                         <TextBlock FontSize="16">
                             ****************************************
                         </TextBlock>
                     </utilities:WatermarkService.Watermark>
-                </TextBox>
+                </PasswordBox>
             </AdornerDecorator>
             <Label Content="{Binding Settings.LatestRelease.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                    Margin="5,14,0,0" 

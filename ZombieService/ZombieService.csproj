@@ -118,4 +118,19 @@
     <PreBuildEvent>if exist "$(TargetPath).locked" del "$(TargetPath).locked"
 if exist "$(TargetPath)" if not exist "$(TargetPath).locked" move "$(TargetPath)" "$(TargetPath).locked"</PreBuildEvent>
   </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>sc query "ZombieService"  |find "ZombieService" &gt;nul
+if %25errorlevel%25==0 goto ServiceInstalled
+if %25errorlevel%25 NEQ '0' goto ServiceNotInstalled
+
+:ServiceInstalled
+echo Uninstalling ZombieService...
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe /u $(TargetPath)
+goto ServiceNotInstalled
+
+:ServiceNotInstalled
+echo ZombieService not installed. Installing...
+C:\Windows\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe $(TargetPath)
+exit 0</PostBuildEvent>
+  </PropertyGroup>
 </Project>

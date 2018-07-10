@@ -18,7 +18,7 @@ namespace ZombieService
             InitializeComponent();
 
             Program.Host = HostUtils.CreateHost(Program.Host);
-            Program.Settings = SettingsUtils.SetSettings(args);
+            Program.Settings = SettingsUtils.GetSettings(args);
         }
 
         protected override void OnStart(string[] args)
@@ -27,7 +27,7 @@ namespace ZombieService
 
             // (Konrad) Create host if one doesn't exist.
             Program.Host = HostUtils.CreateHost(Program.Host);
-            Program.Settings = SettingsUtils.SetSettings(args);
+            Program.Settings = SettingsUtils.GetSettings(args);
 
             
 

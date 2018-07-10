@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using GalaSoft.MvvmLight;
@@ -24,11 +23,11 @@ namespace Zombie
         private ZombieModel Model { get; set; }
         private bool Cancel { get; set; } = true;
         private TextBlock Control { get; set; }
-        public Window Win { get; set; }
         public UpdateRunner Runner { get; set; }
         public ObservableCollection<TabItem> TabItems { get; set; }
-        public RelayCommand<CancelEventArgs> WindowClosing { get; set; }
+        public RelayCommand WindowClosing { get; set; }
         public RelayCommand<Window> WindowLoaded { get; set; }
+        public bool ConnectionFailed { get; set; }
 
         private ZombieSettings _settings;
         public ZombieSettings Settings
@@ -44,7 +43,7 @@ namespace Zombie
             Settings = settings;
             Model = model;
 
-            WindowClosing = new RelayCommand<CancelEventArgs>(OnWindowClosing);
+            WindowClosing = new RelayCommand(OnWindowClosing);
             WindowLoaded = new RelayCommand<Window>(OnWindowLoaded);
 
             var gitHub = new TabItem { Content = new GitHubView { DataContext = new GitHubViewModel(Settings, model) }, Header = "GitHub" };
@@ -97,10 +96,11 @@ namespace Zombie
             }
 
             var filePath = dialog.FileName;
+            Settings.SettingsLocation = filePath;
             switch (obj.Type)
-            {
+            {  
                 case SettingsType.Local:
-                    if (!Model.StoreSettings(Settings, filePath, true))
+                    if (!SettingsUtils.StoreSettings(Settings, true))
                     {
                         StatusBarManager.StatusLabel.Text =
                             "Zombie Settings not saved! Make sure you have write access to chosen path.";
@@ -108,7 +108,7 @@ namespace Zombie
                     }
                     break;
                 case SettingsType.Remote:
-                    if (!Model.StoreSettings(Settings, filePath))
+                    if (!SettingsUtils.StoreSettings(Settings))
                     {
                         StatusBarManager.StatusLabel.Text =
                             "Zombie Settings not saved! Make sure you have write access to chosen path.";
@@ -134,25 +134,8 @@ namespace Zombie
 
         #region Command Handlers
 
-        private void OnWindowClosing(CancelEventArgs args)
+        private void OnWindowClosing()
         {
-            // (Konrad) If Remote Settings were used
-            // We should not be saving them locally but make sure that Startup is up to date.
-            if (!Settings.StoreSettings)
-            {
-                RegistryUtils.SetStartup(Settings);
-
-                if (!Cancel)
-                {
-                    Cleanup(); // removes Messenger bindings
-                    return; // closes Window
-                }
-
-                args.Cancel = true;
-                Win.Hide();
-                return;
-            }
-
             foreach (var tab in TabItems)
             {
                 if (!(tab.Content is MappingsView)) continue;
@@ -163,17 +146,7 @@ namespace Zombie
                 break;
             }
 
-            Model.StoreSettings(Settings, Settings.SettingsLocation);
-            RegistryUtils.SetStartup(Settings);
-
-            if (!Cancel)
-            {
-                Cleanup(); // removes Messenger bindings
-                return; // closes Window
-            }
-
-            args.Cancel = true;
-            Win.Hide();
+            App.ZombieDispatcher.SetSettingsTalker.SetSettings(Settings);
         }
 
         private void OnWindowLoaded(Window win)
@@ -184,6 +157,10 @@ namespace Zombie
             // (Konrad) Store reference to UI Control. It will be needed when
             // settings status messages from a pool thread.
             Control = ((ZombieView) win).statusLabel;
+
+            if (App.ConnectionFailed)
+                StatusBarManager.StatusLabel.Text =
+                    "Failed to connect to ZombieService. Make sure it's alive and kicking!";
         }
 
         #endregion

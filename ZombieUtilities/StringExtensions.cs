@@ -1,5 +1,4 @@
-﻿using System;
-
+﻿
 namespace ZombieUtilities
 {
     public static class StringExtensions

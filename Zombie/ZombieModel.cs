@@ -26,37 +26,6 @@ namespace Zombie
         /// 
         /// </summary>
         /// <param name="settings"></param>
-        /// <param name="filePath"></param>
-        /// <param name="shouldSerialize"></param>
-        public bool StoreSettings(ZombieSettings settings, string filePath, bool shouldSerialize = false)
-        {
-            try
-            {
-                var jsonSettings = new JsonSerializerSettings
-                {
-                    NullValueHandling = NullValueHandling.Ignore,
-                    MissingMemberHandling = MissingMemberHandling.Ignore,
-                    CheckAdditionalContent = true,
-                    Formatting = Formatting.Indented
-                };
-
-                settings.ShouldSerialize = shouldSerialize;
-
-                var json = JsonConvert.SerializeObject(settings, jsonSettings);
-                File.WriteAllText(filePath, json);
-            }
-            catch (Exception e)
-            {
-                _logger.Fatal(e.Message);
-            }
-
-            return File.Exists(filePath);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="settings"></param>
         /// <returns></returns>
         private static async Task<IRestResponse<ReleaseObject>> GetLatestReleaseFromGitHub(ZombieSettings settings)
         {

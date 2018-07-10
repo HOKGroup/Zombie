@@ -15,9 +15,39 @@ namespace Zombie.Utilities
         /// <summary>
         /// 
         /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="shouldSerialize"></param>
+        public static bool StoreSettings(ZombieSettings settings, bool shouldSerialize = false)
+        {
+            try
+            {
+                var jsonSettings = new JsonSerializerSettings
+                {
+                    NullValueHandling = NullValueHandling.Ignore,
+                    MissingMemberHandling = MissingMemberHandling.Ignore,
+                    CheckAdditionalContent = true,
+                    Formatting = Formatting.Indented
+                };
+
+                settings.ShouldSerialize = shouldSerialize;
+
+                var json = JsonConvert.SerializeObject(settings, jsonSettings);
+                File.WriteAllText(settings.SettingsLocation, json);
+            }
+            catch (Exception e)
+            {
+                _logger.Fatal(e.Message);
+            }
+
+            return File.Exists(settings.SettingsLocation);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        public static ZombieSettings SetSettings(IReadOnlyList<string> args)
+        public static ZombieSettings GetSettings(IReadOnlyList<string> args)
         {
             ZombieSettings result;
             var arg1 = args.Any() ? args[0] : string.Empty;

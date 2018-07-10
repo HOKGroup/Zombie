@@ -143,7 +143,6 @@
     <Compile Include="Utilities\FilePathUtils.cs" />
     <Compile Include="Utilities\FrequencyUtils.cs" />
     <Compile Include="Utilities\Messages.cs" />
-    <Compile Include="Utilities\RegistryUtils.cs" />
     <Compile Include="Utilities\UserUtils.cs" />
     <Compile Include="Utilities\Wpf\StatusBarManager.cs" />
     <Compile Include="Utilities\Wpf\WatermarkAdorner.cs" />

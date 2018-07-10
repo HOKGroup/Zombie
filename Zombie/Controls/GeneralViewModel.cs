@@ -1,4 +1,5 @@
-﻿using GalaSoft.MvvmLight;
+﻿using System;
+using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using Zombie.Utilities;
@@ -38,10 +39,14 @@ namespace Zombie.Controls
 
         private void OnFrequencyChanged()
         {
-            Messenger.Default.Send(new ChangeFrequency
+            try
             {
-                Frequency = Settings.CheckFrequency
-            });
+                App.ZombieDispatcher.ChangeFrequencyTalker.ChangeFrequency(Settings.Frequency);
+            }
+            catch (Exception e)
+            {
+                // ignored
+            }
         }
 
         private static void OnSaveSettingsLocal()

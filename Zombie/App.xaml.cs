@@ -1,7 +1,6 @@
 ﻿using System;
 using System.ServiceModel;
 using System.Windows;
-using GalaSoft.MvvmLight.Messaging;
 using NLog;
 using Zombie.Utilities;
 using ZombieUtilities;
@@ -28,6 +27,14 @@ namespace Zombie
                 new EndpointAddress("net.pipe://localhost/PipeSetSettings"));
             ZombieDispatcher.SetSettingsTalker = pipeFactory1.CreateChannel();
 
+            var pipeFactory2 = new ChannelFactory<IZombieTalker>(new NetNamedPipeBinding(),
+                new EndpointAddress("net.pipe://localhost/PipeExecuteUpdate"));
+            ZombieDispatcher.ExecuteUpdateTalker = pipeFactory2.CreateChannel();
+
+            var pipeFactory3 = new ChannelFactory<IZombieTalker>(new NetNamedPipeBinding(),
+                new EndpointAddress("net.pipe://localhost/PipeChangeFrequency"));
+            ZombieDispatcher.ChangeFrequencyTalker = pipeFactory3.CreateChannel();
+
             try
             {
                 // (Konrad) Get latest settings from ZombieService
@@ -41,11 +48,7 @@ namespace Zombie
 
             // (Konrad) Create the startup window
             var m = new ZombieModel();
-            var vm = new ZombieViewModel(Settings, m)
-            {
-                Runner = new UpdateRunner(Settings, m),
-
-            };
+            var vm = new ZombieViewModel(Settings, m);
             var view = new ZombieView
             {
                 DataContext = vm
@@ -58,5 +61,7 @@ namespace Zombie
     {
         public IZombieTalker GetSettingsTalker { get; set; }
         public IZombieTalker SetSettingsTalker { get; set; }
+        public IZombieTalker ExecuteUpdateTalker { get; set; }
+        public IZombieTalker ChangeFrequencyTalker { get; set; }
     }
 }

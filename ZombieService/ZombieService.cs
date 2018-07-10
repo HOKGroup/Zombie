@@ -1,10 +1,15 @@
-﻿using System;
+﻿#region References
+
+using System;
 using System.Collections.Generic;
 using System.ServiceProcess;
 using System.Runtime.InteropServices;
 using System.Linq;
+using Zombie;
 using Zombie.Utilities;
 using ZombieService.Host;
+
+#endregion
 
 namespace ZombieService
 {
@@ -19,19 +24,18 @@ namespace ZombieService
 
             Program.Host = HostUtils.CreateHost(Program.Host);
             Program.Settings = SettingsUtils.GetSettings(args);
+            Program.Runner = new ZombieRunner(Program.Settings);
         }
 
         protected override void OnStart(string[] args)
         {
             System.Diagnostics.Debugger.Launch();
+            InitLogging(args);
 
-            // (Konrad) Create host if one doesn't exist.
+            // (Konrad) Set host, settings and runner if they don't exist
             Program.Host = HostUtils.CreateHost(Program.Host);
             Program.Settings = SettingsUtils.GetSettings(args);
-
-            
-
-            InitLogging(args);
+            Program.Runner = new ZombieRunner(Program.Settings);
 
             // Update the service state to Start Pending.  
             var serviceStatus = new ServiceStatus

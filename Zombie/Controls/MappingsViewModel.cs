@@ -69,7 +69,7 @@ namespace Zombie.Controls
         {
             // TODO: I am also shipping here a new settings object since these could also be updated.
             // TODO: We need to use that new Settings to set them on other objects.
-            if (obj.Result != ConnectionResult.Success) return;
+            //if (obj.Result != ConnectionResult.Success) return;
 
             // (Konrad) Get all allocated assets. They would be allocated if they were
             // previously deserialized from Settings, or set on previous cycle.

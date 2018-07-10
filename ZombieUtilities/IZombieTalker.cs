@@ -11,5 +11,11 @@ namespace ZombieUtilities
 
         [OperationContract]
         bool SetSettings(ZombieSettings settings);
+
+        [OperationContract]
+        void ExecuteUpdate();
+
+        [OperationContract]
+        void ChangeFrequency(Frequency frequency);
     }
 }

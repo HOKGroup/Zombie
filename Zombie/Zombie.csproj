@@ -135,13 +135,9 @@
       <DependentUpon>MappingsView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\MappingsViewModel.cs" />
-    <Compile Include="Utilities\GitHubUtils.cs" />
-    <Compile Include="Utilities\UpdateRunner.cs" />
     <Compile Include="Utilities\Wpf\Converters.cs" />
     <Compile Include="Utilities\EnumHelper.cs" />
     <Compile Include="Utilities\Extensions.cs" />
-    <Compile Include="Utilities\FilePathUtils.cs" />
-    <Compile Include="Utilities\FrequencyUtils.cs" />
     <Compile Include="Utilities\Messages.cs" />
     <Compile Include="Utilities\UserUtils.cs" />
     <Compile Include="Utilities\Wpf\StatusBarManager.cs" />

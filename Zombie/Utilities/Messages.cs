@@ -17,7 +17,7 @@ namespace Zombie.Utilities
     {
         public ReleaseObject Release { get; set; }
         public ZombieSettings Settings { get; set; }
-        public ConnectionResult Result { get; set; }
+        //public ConnectionResult Result { get; set; }
     }
 
     /// <summary>
@@ -48,12 +48,5 @@ namespace Zombie.Utilities
     {
         Local,
         Remote
-    }
-
-    public enum ConnectionResult
-    {
-        Success,
-        Failure,
-        UpToDate
     }
 }

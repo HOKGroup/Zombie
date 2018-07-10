@@ -92,7 +92,7 @@ namespace Zombie.Utilities
             {
                 result = new ZombieSettings
                 {
-                    SettingsLocation = Path.Combine(Directory.GetCurrentDirectory(), "ZombieSettings.json"),
+                    SettingsLocation = Path.Combine(FileUtils.GetZombieDownloadsDirectory(), "ZombieSettings.json"),
                     StoreSettings = true
                 };
             }
@@ -109,7 +109,7 @@ namespace Zombie.Utilities
         public static bool TryGetRemoteSettings(string path, out ZombieSettings settings)
         {
             settings = null;
-            var filePath = Path.Combine(Path.GetTempPath(), "ZombieSettings.json");
+            var filePath = Path.Combine(FileUtils.GetZombieDownloadsDirectory(), "ZombieSettings.json");
 
             // (Konrad) Remove the existing file.
             // WebClient will not override it. 
@@ -124,7 +124,7 @@ namespace Zombie.Utilities
                 }
                 catch (Exception e)
                 {
-                    _logger.Fatal(e.Message);
+                    _logger.Fatal("Remote Settings failed to download: " + e.Message);
                     return false;
                 }
             }

@@ -23,7 +23,7 @@ namespace Zombie
         private ZombieModel Model { get; set; }
         private bool Cancel { get; set; } = true;
         private TextBlock Control { get; set; }
-        public UpdateRunner Runner { get; set; }
+        //public UpdateRunner Runner { get; set; }
         public ObservableCollection<TabItem> TabItems { get; set; }
         public RelayCommand WindowClosing { get; set; }
         public RelayCommand<Window> WindowLoaded { get; set; }
@@ -124,10 +124,7 @@ namespace Zombie
 
         private void OnChangeFrequency(ChangeFrequency obj)
         {
-            var interval = FrequencyUtils.TimeSpanFromFrequency(obj.Frequency);
-
-            // (Konrad) We should delay the execution by the new interval.
-            Runner.Timer.Change(interval, interval);
+            
         }
 
         #endregion
@@ -146,7 +143,14 @@ namespace Zombie
                 break;
             }
 
-            App.ZombieDispatcher.SetSettingsTalker.SetSettings(Settings);
+            try
+            {
+                App.ZombieDispatcher.SetSettingsTalker.SetSettings(Settings);
+            }
+            catch (Exception e)
+            {
+                // ignored
+            }
         }
 
         private void OnWindowLoaded(Window win)

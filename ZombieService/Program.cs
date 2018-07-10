@@ -1,5 +1,6 @@
 ﻿using System.ServiceModel;
 using System.ServiceProcess;
+using Zombie;
 using Zombie.Utilities;
 
 namespace ZombieService
@@ -8,6 +9,7 @@ namespace ZombieService
     {
         public static ServiceHost Host;
         public static ZombieSettings Settings;
+        public static ZombieRunner Runner;
 
         /// <summary>
         /// The main entry point for the application.

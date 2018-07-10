@@ -60,12 +60,12 @@ namespace Zombie.Utilities
             return ShouldSerialize;
         }
 
-        private Frequency _checkFrequency = Frequency.h1;
+        private Frequency _frequency = Frequency.h1;
         [JsonConverter(typeof(StringEnumConverter))]
-        public Frequency CheckFrequency
+        public Frequency Frequency
         {
-            get { return _checkFrequency; }
-            set { _checkFrequency = value; RaisePropertyChanged("CheckFrequency"); }
+            get { return _frequency; }
+            set { _frequency = value; RaisePropertyChanged("Frequency"); }
         }
 
         private List<AssetObject> _sourceAssets = new List<AssetObject>();

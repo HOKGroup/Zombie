@@ -21,6 +21,14 @@ namespace ZombieService.Host
                 new NetNamedPipeBinding(),
                 "PipeSetSettings");
 
+            currentHost.AddServiceEndpoint(typeof(IZombieTalker),
+                new NetNamedPipeBinding(),
+                "PipeExecuteUpdate");
+
+            currentHost.AddServiceEndpoint(typeof(IZombieTalker),
+                new NetNamedPipeBinding(),
+                "PipeChangeFrequency");
+
             currentHost.Open();
             return currentHost;
         }

@@ -1,4 +1,5 @@
-﻿using GalaSoft.MvvmLight;
+﻿using System;
+using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using Zombie.Utilities;
@@ -31,9 +32,9 @@ namespace Zombie.Controls
 
         private void OnReleaseDownloaded(ReleaseDownloaded obj)
         {
-            Settings.LatestRelease = obj.Result == ConnectionResult.Failure
-                ? null
-                : obj.Release;
+            //Settings.LatestRelease = obj.Result == ConnectionResult.Failure
+            //    ? null
+            //    : obj.Release;
         }
 
         #endregion
@@ -42,7 +43,14 @@ namespace Zombie.Controls
 
         private void OnUpdate()
         {
-            Model.GetLatestRelease(Settings);
+            try
+            {
+                App.ZombieDispatcher.ExecuteUpdateTalker.ExecuteUpdate();
+            }
+            catch (Exception e)
+            {
+                // ignored
+            }
         }
 
         #endregion

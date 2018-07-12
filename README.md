@@ -5,6 +5,20 @@ This is Zombie! An app that never dies, and keeps coming for your release files.
   <img width="500" height="500" src="/_graphics/PNG/iconsZombie.png">
 </p>
 
+## What is Zombie?:
+
+1. Zombie Service.
+2. Zombie GUI.
+
+### 1. Zombie Service
+
+This part of Zombie runs in the background as a [Windows Service](https://docs.microsoft.com/en-us/dotnet/framework/windows-services/introduction-to-windows-service-applications). The reason it's a Windows Service is simple: we needed it to be a System level application with admin privelages. Since the main job that this service does, is to move files around on a computer we needed it to have admin rights in case that we need to copy some files into ProgramData, ProgramFiles etc. 
+
+ZombieService also hosts a [WCF (Windows Commmunications Foundation)](https://docs.microsoft.com/en-us/dotnet/framework/wcf/whats-wcf) Service inside of it. What is that? It's a server. What for? Well, Windows Service cannot have a GUI component to it, so we needed to de-couple the GUI from the Service. Now that they are seperate and actually two (2) seperate processes, we needed a way to communicate between them, in case that you wanted to ask the Service to do something (perform an update etc.). 
+
+### 2. Zombie GUI
+
+This part of Zombie is a WPF App that allows us to create, and set settings for the Zombie Service. Like I said, Windows Service doesn't have a GUI so this is a stand-alone app, that uses a WCF framework to talk to the service. It uses port 8000 to do the talking. 
 
 ## How does Zombie work: 
 

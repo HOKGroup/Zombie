@@ -48,6 +48,8 @@ namespace Zombie.Utilities.Wpf
                     return new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/image_32x32.png", UriKind.Absolute));
                 case ".exe":
                     return new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/exe_32x32.png", UriKind.Absolute));
+                case "":
+                    return new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/folderNarrow_32x32.png", UriKind.Absolute));
                 default:
                     return new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/unknown_32x32.png", UriKind.Absolute));
             }
@@ -118,7 +120,7 @@ namespace Zombie.Utilities.Wpf
         {
             return (value is bool && (bool) value) 
                 ? new GridLength(0) 
-                : new GridLength(18);
+                : new GridLength(15);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

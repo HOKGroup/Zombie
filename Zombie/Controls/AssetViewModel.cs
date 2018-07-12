@@ -9,6 +9,7 @@ using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using Zombie.Utilities;
 using Zombie.Utilities.Wpf;
+using ZombieUtilities;
 
 #endregion
 
@@ -88,7 +89,25 @@ namespace Zombie.Controls
                 {
                     foreach (var asset in zip.Entries)
                     {
-                        Contents.Add(new AssetViewModel(new AssetObject { Name = asset.Name }) { IsContent = true });
+                        if (asset.FullName.Contains("/"))
+                        {
+                            // (Konrad) Skip files inside of folders.
+                            continue;
+                        }
+
+                        if (asset.Name == string.Empty)
+                        {
+                            // (Konrad) It's a directory
+                            Contents.Add(new AssetViewModel(new AssetObject
+                            {
+                                Name = asset.FullName.TrimLastCharacter("/")
+                            }) { IsContent = true });
+                        }
+
+                        Contents.Add(new AssetViewModel(new AssetObject
+                        {
+                            Name = asset.Name
+                        }) { IsContent = true });
                     }
                 }
             }

@@ -19,6 +19,9 @@ namespace Zombie.Utilities
         [JsonProperty("body")]
         public string Body { get; set; }
 
+        [JsonProperty("prerelease")]
+        public bool Prerelease { get; set; }
+
         [JsonProperty("published_at")]
         public DateTime PublishedAt { get; set; }
 

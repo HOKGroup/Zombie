@@ -56,8 +56,34 @@
             <Button.Template>
                 <ControlTemplate TargetType="Button">
                     <StackPanel>
-                        <Image Name="image1" Height="32" Width="32" Source="../Resources/refresh_32x32.png"  Visibility="Visible" />
-                        <Image Name="image2" Height="32" Width="32" Source="../Resources/refreshHover_32x32.png" Visibility="Collapsed" />
+                        <Image Name="image1" Height="32" Width="32" Source="../Resources/update_32x32.png"  Visibility="Visible" />
+                        <Image Name="image2" Height="32" Width="32" Source="../Resources/updateHover_32x32.png" Visibility="Collapsed" />
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image2" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+        <Button Name="PrereleaseButton" 
+                Grid.Row="1" 
+                Grid.Column="1" 
+                ToolTip="Download latest pre-release!"
+                Command="{Binding DownloadPrerelease, Mode=OneWay}" 
+                Margin="0,0,52,0" 
+                Cursor="Hand" 
+                Background="Transparent" 
+                Visibility="Visible" 
+                HorizontalAlignment="Right" 
+                VerticalAlignment="Center">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <StackPanel>
+                        <Image Name="image1" Height="32" Width="32" Source="../Resources/prerelease_32x32.png"  Visibility="Visible" />
+                        <Image Name="image2" Height="32" Width="32" Source="../Resources/prereleaseHover_32x32.png" Visibility="Collapsed" />
                     </StackPanel>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">

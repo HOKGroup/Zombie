@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using NLog;
 using RestSharp;
@@ -10,6 +12,36 @@ namespace Zombie.Utilities
     {
         private static Logger _logger = LogManager.GetCurrentClassLogger();
         private const string BaseUrl = "https://api.github.com";
+
+        public static ReleaseObject DownloadPreRelease(ZombieSettings settings)
+        {
+            // (Konrad) Apparently it's possible that new Windows updates change the standard 
+            // SSL protocol to SSL3. RestSharp uses whatever current one is while GitHub server 
+            // is not ready for it yet, so we have to use TLS1.2 explicitly.
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
+            var client = new RestClient(BaseUrl);
+            var repoAddress = settings.Address.Replace("https://github.com", "");
+            var requestString = "/repos" + repoAddress + "/releases";
+            var request = new RestRequest(requestString, Method.GET)
+            {
+                OnBeforeDeserialization = x => { x.ContentType = "application/json"; }
+            };
+            request.AddHeader("Content-type", "application/json");
+            request.AddHeader("Authorization", "Token " + settings.AccessToken);
+            request.RequestFormat = DataFormat.Json;
+
+            var response = client.Execute<List<ReleaseObject>>(request);
+            if (response.StatusCode != HttpStatusCode.OK)
+            {
+                _logger.Error("Connection failed!");
+                return null;
+            }
+
+            var result = response.Data.OrderBy(x => x.PublishedAt).FirstOrDefault(x => x.Prerelease);
+            return result;
+        }
 
         /// <summary>
         /// 

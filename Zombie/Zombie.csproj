@@ -268,8 +268,6 @@
   <ItemGroup>
     <Resource Include="Resources\addHover_32x32.png" />
     <Resource Include="Resources\add_32x32.png" />
-    <Resource Include="Resources\refreshHover_32x32.png" />
-    <Resource Include="Resources\refresh_32x32.png" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ZombieUtilities\ZombieUtilities.csproj">
@@ -286,6 +284,12 @@
   <ItemGroup>
     <Resource Include="Resources\dragableDisabled_32x32.png" />
     <Resource Include="Resources\dragable_32x32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\prereleaseHover_32x32.png" />
+    <Resource Include="Resources\prerelease_32x32.png" />
+    <Resource Include="Resources\updateHover_32x32.png" />
+    <Resource Include="Resources\update_32x32.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

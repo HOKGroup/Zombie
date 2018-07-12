@@ -31,23 +31,25 @@
             </RowDefinition>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="6"/>
             <ColumnDefinition Width="{Binding IsContent, Converter={StaticResource BoolToWidthConverter}, Mode=TwoWay}"/>
             <ColumnDefinition Width="18"/>
             <ColumnDefinition Width="{Binding Asset.Name, Converter={StaticResource AssetNameToWidthConverter}, Mode=TwoWay}"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
+        <Rectangle Fill="#2B374F" Width="3" HorizontalAlignment="Left"/>
         <Image x:Name="DraggableImage" 
-               Grid.Column="0"
+               Grid.Column="1"
                Grid.Row="0"
                VerticalAlignment="Center"
                HorizontalAlignment="Center"
                Height="18"
-               Width="18" 
+               Width="15" 
                Visibility="{Binding IsContent, Converter={StaticResource BoolToVisInverterConverter}}"
                Source="{Binding IsPlaceholder, Converter={StaticResource BooleanToDragableSourceConverter}}" 
                ToolTip="Drag me like a zombie!"/>
         <Image x:Name="FileTypeImage" 
-               Grid.Column="1"
+               Grid.Column="2"
                Grid.Row="0"
                VerticalAlignment="Center"
                HorizontalAlignment="Center"
@@ -61,7 +63,7 @@
             </Image.Source>
         </Image>
         <Button Name="PreviewOffButton" 
-                Grid.Column="2" 
+                Grid.Column="3" 
                 Grid.Row="0"
                 ToolTip="I want to see more!"
                 Command="{Binding ShowContents, Mode=OneWay}" 
@@ -86,7 +88,7 @@
             </Button.Template>
         </Button>
         <Button Name="PreviewOnButton" 
-                Grid.Column="2" 
+                Grid.Column="3" 
                 Grid.Row="0"
                 ToolTip="Go away!"
                 Command="{Binding ShowContents, Mode=OneWay}" 
@@ -110,19 +112,20 @@
                 </ControlTemplate>
             </Button.Template>
         </Button>
-        <Label Grid.Column="3" 
+        <Label Grid.Column="4" 
                Grid.Row="0"
                Content="{Binding Asset.Name, Mode=OneWay}"
                Padding="5,0" 
                VerticalAlignment="Center" 
                VerticalContentAlignment="Center" />
-        <Border Grid.Column="2"
+        <Border Grid.Column="3"
                 Grid.ColumnSpan="2"
                 Grid.Row="1"
+                Margin="7,0,0,0"
                 VerticalAlignment="Top">
             <ScrollViewer VerticalScrollBarVisibility="Auto" 
                           MaxHeight="{Binding LocationObject.MaxHeight}"
-                          Margin="0,0,5,0">
+                          Margin="0,0,0,0">
                 <ItemsControl>
                     <ItemsControl.Resources>
                         <CollectionViewSource x:Key="Contents" Source="{Binding Contents}">

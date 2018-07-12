@@ -59,6 +59,8 @@ namespace Zombie.Controls
             ShowContents = new RelayCommand(OnShowContents);
         }
 
+        #region Command Handlers
+
         private void OnShowContents()
         {
             IsContentVisible = !IsContentVisible;
@@ -86,7 +88,7 @@ namespace Zombie.Controls
                 {
                     foreach (var asset in zip.Entries)
                     {
-                        Contents.Add(new AssetViewModel(new AssetObject {Name = asset.Name}) {IsContent = true});
+                        Contents.Add(new AssetViewModel(new AssetObject { Name = asset.Name }) { IsContent = true });
                     }
                 }
             }
@@ -96,6 +98,8 @@ namespace Zombie.Controls
                 throw;
             }
         }
+
+        #endregion
 
         public override bool Equals(object obj)
         {

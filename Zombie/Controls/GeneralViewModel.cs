@@ -1,13 +1,22 @@
-﻿using GalaSoft.MvvmLight;
+﻿#region References
+
+using System;
+using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
+using NLog;
 using Zombie.Utilities;
+using ZombieUtilities.Host;
+
+#endregion
 
 namespace Zombie.Controls
 {
     public class GeneralViewModel : ViewModelBase
     {
-        public ZombieModel Model { get; set; }
+        #region Properties
+
+        private static Logger _logger = LogManager.GetCurrentClassLogger();
         public RelayCommand SaveSettingsLocal { get; set; }
         public RelayCommand SaveSettingsRemote { get; set; }
         public RelayCommand FrequencyChanged { get; set; }
@@ -19,14 +28,33 @@ namespace Zombie.Controls
             set { _settings = value; RaisePropertyChanged(() => Settings); }
         }
 
-        public GeneralViewModel(ZombieSettings settings, ZombieModel model)
+        #endregion
+
+        public GeneralViewModel(ZombieSettings settings)
         {
             Settings = settings;
-            Model = model;
 
             SaveSettingsLocal = new RelayCommand(OnSaveSettingsLocal);
             SaveSettingsRemote = new RelayCommand(OnSaveSettingsRemote);
             FrequencyChanged = new RelayCommand(OnFrequencyChanged);
+
+            Messenger.Default.Register<GuiUpdate>(this, OnGuiUpdate);
+        }
+
+        private void OnGuiUpdate(GuiUpdate obj)
+        {
+            switch (obj.Status)
+            {
+                case Status.Failed:
+                    break;
+                case Status.Succeeded:
+                    Settings = obj.Settings;
+                    break;
+                case Status.UpToDate:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         #region Command Handlers
@@ -36,17 +64,21 @@ namespace Zombie.Controls
             Messenger.Default.Send(new StoreSettings { Type = SettingsType.Remote });
         }
 
-        private void OnFrequencyChanged()
-        {
-            Messenger.Default.Send(new ChangeFrequency
-            {
-                Frequency = Settings.CheckFrequency
-            });
-        }
-
         private static void OnSaveSettingsLocal()
         {
             Messenger.Default.Send(new StoreSettings { Type = SettingsType.Local });
+        }
+
+        private void OnFrequencyChanged()
+        {
+            try
+            {
+                App.Client.ChangeFrequency(Settings.Frequency);
+            }
+            catch (Exception e)
+            {
+                _logger.Fatal(e);
+            }
         }
 
         #endregion

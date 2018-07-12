@@ -1,11 +1,12 @@
 ﻿#region References
 
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using System;
+using System.ServiceModel;
 using System.Windows;
+using GalaSoft.MvvmLight.Messaging;
 using NLog;
 using Zombie.Utilities;
+using ZombieUtilities.Host;
 
 #endregion
 
@@ -17,79 +18,72 @@ namespace Zombie
     public partial class App
     {
         private static Logger _logger = LogManager.GetCurrentClassLogger();
-        public static ZombieSettings Settings { get; set; }
+        public static ZombieSettings Settings { get; set; } = new ZombieSettings();
+        public static bool ConnectionFailed { get; set; }
+        public static ZombieServiceClient Client { get; set; }
 
-        private void Application_Startup(object sender, StartupEventArgs e)
+        public delegate void GuiUpdateCallbackHandler(GuiUpdate update);
+        public static event GuiUpdateCallbackHandler GuiUpdateCallbackEvent;
+
+        [CallbackBehavior(UseSynchronizationContext = false)]
+        public class ZombieServiceCallback : IZombieServiceCallback
         {
-            var arg1 = GetRemoteSettingsPath(e.Args);
-            var local = File.Exists(arg1);
-            if (!string.IsNullOrEmpty(arg1) && !local)
+            public void GuiUpdate(GuiUpdate update)
             {
-                // (Konrad) Arg1 is a path that doesn't exist locally so it is likely
-                // a remote file location (HTTP).
-                if (SettingsUtils.TryGetRemoteSettings(arg1, out var settings))
-                {
-                    Settings = settings;
-                    Settings.AccessToken = GetAccessToken(e.Args);
-                    Settings.SettingsLocation = arg1;
-                    Settings.StoreSettings = false;
-                }
-                else
-                {
-                    // (Konrad) We have a path in the Arg1 that doesn't exist or failed to 
-                    // deserialize so we can treat it as if it didn't exist and override it on close.
-                    Settings = new ZombieSettings
-                    {
-                        SettingsLocation = arg1,
-                        StoreSettings = true
-                    };
-                }
+                GuiUpdateCallbackEvent(update);
             }
-            else if (!string.IsNullOrEmpty(arg1) && local)
-            {
-                // (Konrad) Arg1 exists on a user drive or network drive.
-                Settings = SettingsUtils.TryGetStoredSettings(arg1, out var settings)
-                    ? settings
-                    : new ZombieSettings();
-                Settings.SettingsLocation = arg1;
+        }
 
-                // (Konrad) If AccessToken was in the Settings file we can skip this.
-                // If it wasn't it should be set with the Arg2
-                if (string.IsNullOrEmpty(Settings.AccessToken)) Settings.AccessToken = GetAccessToken(e.Args);
-            }
-            else
+        private void OnStartup(object sender, StartupEventArgs e)
+        {
+            try
             {
-                Settings = new ZombieSettings
-                {
-                    SettingsLocation = Path.Combine(Directory.GetCurrentDirectory(), "ZombieSettings.json"),
-                    StoreSettings = true
-                };
+                var binding = ServiceUtils.CreateClientBinding(ServiceUtils.FreeTcpPort());
+                var endpoint = new EndpointAddress(new Uri("http://localhost:8000/ZombieService/Service.svc"));
+                var context = new InstanceContext(new ZombieServiceCallback());
+                Client = new ZombieServiceClient(context, binding, endpoint);
+
+                GuiUpdateCallbackHandler callbackHandler = OnGuiUpdate;
+                GuiUpdateCallbackEvent += callbackHandler;
+
+                Client.Open();
+                Client.Subscribe();
+
+                // (Konrad) Get latest settings from ZombieService
+                Settings = Client.GetSettings();
+            }
+            catch (Exception ex)
+            {
+                ConnectionFailed = true;
+                _logger.Fatal(ex.Message);
             }
 
-            // Create the startup window
-            var m = new ZombieModel();
-            var vm = new ZombieViewModel(Settings, m);
-            var wnd = new ZombieView
+            // (Konrad) Create the startup window
+            var vm = new ZombieViewModel(Settings);
+            var view = new ZombieView
             {
                 DataContext = vm
             };
-            
-            wnd.ShowInTaskbar = true;
-            vm.Startup(wnd);
+            view.Show();
         }
 
-        #region Utilities
-
-        private static string GetRemoteSettingsPath(IReadOnlyList<string> args)
+        private static void OnGuiUpdate(GuiUpdate update)
         {
-            return args.Any() ? args[0] : string.Empty;
+            Messenger.Default.Send(update);
         }
 
-        private static string GetAccessToken(IReadOnlyList<string> args)
+        private void OnExit(object sender, ExitEventArgs e)
         {
-            return args.Count > 1 ? args[1] : string.Empty;
+            try
+            {
+                Client.Unsubscribe();
+                Client.Close();
+                _logger.Info("Exited Zombie!");
+            }
+            catch (Exception ex)
+            {
+                _logger.Fatal(ex.Message);
+            }
         }
-
-        #endregion
     }
 }

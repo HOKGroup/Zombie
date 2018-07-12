@@ -14,9 +14,11 @@ namespace Zombie.Utilities
             TimeSpan interval;
             switch (frequency)
             {
+#if DEBUG
                 case Frequency.min1:
                     interval = TimeSpan.FromSeconds(30);
                     break;
+#endif
                 case Frequency.min15:
                     interval = TimeSpan.FromMinutes(15);
                     break;

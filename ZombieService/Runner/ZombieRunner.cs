@@ -2,23 +2,24 @@
 using System.Threading;
 using NLog;
 using Zombie.Utilities;
+using ZombieService.Runner;
 
 namespace Zombie
 {
-    public class UpdateRunner
+    public class ZombieRunner
     {
         private static Logger _logger = LogManager.GetCurrentClassLogger();
         public readonly Timer Timer;
 
-        public UpdateRunner(ZombieSettings settings, ZombieModel model)
+        public ZombieRunner(ZombieSettings settings)
         {
             // (Konrad) We can launch the updater immediately.
-            var interval = FrequencyUtils.TimeSpanFromFrequency(settings.CheckFrequency);
+            var interval = FrequencyUtils.TimeSpanFromFrequency(settings.Frequency);
             Timer = new Timer(x =>
             {
                 try
                 {
-                    model.GetLatestRelease(settings);
+                    RunnerUtils.GetLatestRelease(settings);
                 }
                 catch (Exception e)
                 {

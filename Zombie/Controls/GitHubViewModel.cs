@@ -1,13 +1,22 @@
-﻿using GalaSoft.MvvmLight;
+﻿#region References
+
+using System;
+using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
+using NLog;
 using Zombie.Utilities;
+using ZombieUtilities.Host;
+
+#endregion
 
 namespace Zombie.Controls
 {
     public class GitHubViewModel : ViewModelBase
     {
-        public ZombieModel Model { get; set; }
+        #region Properties
+
+        private static Logger _logger = LogManager.GetCurrentClassLogger();
         public RelayCommand Update { get; set; }
 
         private ZombieSettings _settings;
@@ -17,35 +26,47 @@ namespace Zombie.Controls
             set { _settings = value; RaisePropertyChanged(() => Settings); }
         }
 
-        public GitHubViewModel(ZombieSettings settings, ZombieModel model)
+        #endregion
+
+        public GitHubViewModel(ZombieSettings settings)
         {
             Settings = settings;
-            Model = model;
 
             Update = new RelayCommand(OnUpdate);
 
-            Messenger.Default.Register<ReleaseDownloaded>(this, OnReleaseDownloaded);
+            Messenger.Default.Register<GuiUpdate>(this, OnGuiUpdate);
         }
 
-        #region Message Handlers
-
-        private void OnReleaseDownloaded(ReleaseDownloaded obj)
+        private void OnGuiUpdate(GuiUpdate obj)
         {
-            Settings.LatestRelease = obj.Result == ConnectionResult.Failure
-                ? null
-                : obj.Release;
+            switch (obj.Status)
+            {
+                case Status.Failed:
+                    break;
+                case Status.Succeeded:
+                    Settings = obj.Settings;
+                    break;
+                case Status.UpToDate:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
-
-        #endregion
 
         #region Command Handlers
 
-        private void OnUpdate()
+        private static void OnUpdate()
         {
-            Model.GetLatestRelease(Settings);
+            try
+            {
+                App.Client.ExecuteUpdate();
+            }
+            catch (Exception e)
+            {
+                _logger.Fatal(e.Message);
+            }
         }
 
         #endregion
-
     }
 }

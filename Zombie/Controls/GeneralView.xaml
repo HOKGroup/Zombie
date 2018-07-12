@@ -123,10 +123,10 @@
                 </TextBox>
             </AdornerDecorator>
             <ComboBox x:Name="MarkValueComboBox"
-                      ItemsSource="{Binding Settings.CheckFrequency, Converter={StaticResource EnumToCollectionConverter}, Mode=OneTime}"
+                      ItemsSource="{Binding Settings.Frequency, Converter={StaticResource EnumToCollectionConverter}, Mode=OneTime}"
                       SelectedValuePath="Value"
                       DisplayMemberPath="Description"
-                      SelectedValue="{Binding Settings.CheckFrequency}"
+                      SelectedValue="{Binding Settings.Frequency}"
                       SelectedIndex="0"
                       Margin="10,17,0,0" Width="150" Height="24" HorizontalAlignment="Left"
                       VerticalAlignment="Top">

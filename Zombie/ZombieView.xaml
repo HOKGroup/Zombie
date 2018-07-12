@@ -5,18 +5,16 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
-        xmlns:command="http://www.galasoft.ch/mvvmlight"
         mc:Ignorable="d"
         Icon="Resources/iconsZombie.ico"
         Title="Zombie" Height="800" Width="850" ResizeMode="NoResize">
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closing">
-            <command:EventToCommand Command="{Binding WindowClosing}"
-                                    PassEventArgsToCommand="True" />
+            <i:InvokeCommandAction Command="{Binding WindowClosing}" />
         </i:EventTrigger>
         <i:EventTrigger EventName="Loaded">
             <i:InvokeCommandAction Command="{Binding WindowLoaded}" 
-                                   CommandParameter="{Binding ElementName=Win}"/>
+                                   CommandParameter="{Binding ElementName=Win}" />
         </i:EventTrigger>
     </i:Interaction.Triggers>
     <Grid Background="#E6E3DB">

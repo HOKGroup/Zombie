@@ -137,13 +137,10 @@
     <Compile Include="Controls\MappingsViewModel.cs" />
     <Compile Include="Utilities\Wpf\Converters.cs" />
     <Compile Include="Utilities\EnumHelper.cs" />
-    <Compile Include="Utilities\Extensions.cs" />
     <Compile Include="Utilities\Messages.cs" />
-    <Compile Include="Utilities\UserUtils.cs" />
     <Compile Include="Utilities\Wpf\StatusBarManager.cs" />
     <Compile Include="Utilities\Wpf\WatermarkAdorner.cs" />
     <Compile Include="Utilities\Wpf\WatermarkService.cs" />
-    <Compile Include="ZombieModel.cs" />
     <Compile Include="ZombieViewModel.cs" />
     <Page Include="Controls\AssetView.xaml">
       <SubType>Designer</SubType>

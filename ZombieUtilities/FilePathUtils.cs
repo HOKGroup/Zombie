@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Management;
-using System.Security.Principal;
-using Microsoft.Win32;
 
 namespace Zombie.Utilities
 {
@@ -37,9 +34,7 @@ namespace Zombie.Utilities
             var searcher = new ManagementObjectSearcher("SELECT UserName FROM Win32_ComputerSystem");
             var networkUsername = (string)searcher.Get().Cast<ManagementBaseObject>().First()["UserName"];
             var user = networkUsername.Substring(networkUsername.LastIndexOf('\\') + 1);
-
             var userPath = @"C:\Users\" + user;
-            //var userPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             if (filePath.StartsWith("%userpath%"))
             {
                 filePath = filePath.Replace("%userpath%", userPath);

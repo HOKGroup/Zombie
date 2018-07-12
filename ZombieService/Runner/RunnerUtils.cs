@@ -1,22 +1,21 @@
-﻿using System;
+﻿#region References
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using NLog;
 using RestSharp;
 using Zombie.Utilities;
+using ZombieUtilities.Host;
+
+#endregion
 
 namespace ZombieService.Runner
 {
-    public enum ConnectionResult
-    {
-        Success,
-        Failure,
-        UpToDate
-    }
-
     public static class RunnerUtils
     {
         private static Logger _logger = LogManager.GetCurrentClassLogger();
@@ -30,7 +29,7 @@ namespace ZombieService.Runner
         {
             if (string.IsNullOrEmpty(settings?.AccessToken) || string.IsNullOrEmpty(settings.Address))
             {
-                UpdateUI("Connection failed!", ConnectionResult.Failure);
+                _logger.Error("Connection failed!");
                 return;
             }
 
@@ -54,7 +53,7 @@ namespace ZombieService.Runner
             var response = client.Execute<ReleaseObject>(request);
             if (response.StatusCode != HttpStatusCode.OK)
             {
-                UpdateUI("Connection failed!", ConnectionResult.Failure);
+                _logger.Error("Connection failed!");
                 return;
             }
 
@@ -62,7 +61,19 @@ namespace ZombieService.Runner
             var currentVersion = Properties.Settings.Default["CurrentVersion"].ToString();
             if (!release.Assets.Any() || new Version(release.TagName).CompareTo(new Version(currentVersion)) <= 0)
             {
-                UpdateUI("Your release is up to date!", ConnectionResult.UpToDate, release);
+                var update1 = new GuiUpdate
+                {
+                    Settings = Program.Settings,
+                    Status = Status.UpToDate,
+                    Message = "Your release is up to date!"
+                };
+                new Thread(() => new ZombieMessenger().Broadcast(update1))
+                {
+                    Priority = ThreadPriority.BelowNormal,
+                    IsBackground = true
+                }.Start();
+
+                _logger.Info("Your release is up to date!");
                 return;
             }
 
@@ -76,7 +87,7 @@ namespace ZombieService.Runner
 
             if (downloaded != release.Assets.Count)
             {
-                UpdateUI("Failed to download assets!", ConnectionResult.Failure);
+                _logger.Error("Failed to download assets!");
                 return;
             }
 
@@ -87,7 +98,7 @@ namespace ZombieService.Runner
             {
                 if (!SettingsUtils.TryGetStoredSettings(settings.SettingsLocation, out newSettings))
                 {
-                    UpdateUI("Could not get latest local Zombie Settings!", ConnectionResult.Failure);
+                    _logger.Error("Could not get latest local Zombie Settings!");
                     return;
                 }
             }
@@ -95,7 +106,7 @@ namespace ZombieService.Runner
             {
                 if (!SettingsUtils.TryGetRemoteSettings(settings.SettingsLocation, out newSettings))
                 {
-                    UpdateUI("Could not get latest remote Zombie Settings!", ConnectionResult.Failure);
+                    _logger.Error("Could not get latest remote Zombie Settings!");
                     return;
                 }
             }
@@ -115,7 +126,7 @@ namespace ZombieService.Runner
                             continue;
                         }
 
-                        UpdateUI("Could not get access to all ZIP contents!", ConnectionResult.Failure);
+                        _logger.Error("Could not get access to all ZIP contents!");
                         return;
                     }
 
@@ -128,7 +139,7 @@ namespace ZombieService.Runner
                     }
                     catch (Exception e)
                     {
-                        UpdateUI(e.Message, ConnectionResult.Failure);
+                        _logger.Fatal(e.Message);
                         return;
                     }
                 }
@@ -143,7 +154,7 @@ namespace ZombieService.Runner
                     {
                         if (ExtractToDirectory(asset, loc.DirectoryPath, fileStreams)) continue;
 
-                        UpdateUI("Could not override existing ZIP contents!", ConnectionResult.Failure);
+                        _logger.Fatal("Could not override existing ZIP contents!");
                         return;
                     }
 
@@ -156,7 +167,7 @@ namespace ZombieService.Runner
 
                     if (FileUtils.Copy(@from, @to)) continue;
 
-                    UpdateUI("Could not override existing file!", ConnectionResult.Failure);
+                    _logger.Fatal("Could not override existing file!");
                     return;
                 }
             }
@@ -164,21 +175,39 @@ namespace ZombieService.Runner
             // (Konrad) Remove temporary assets
             if (!FileUtils.DeleteDirectory(dir))
             {
-                UpdateUI("Could not remove temporary download assets!", ConnectionResult.Failure);
+                _logger.Error("Could not remove temporary download assets!");
                 return;
             }
 
-            // (Konrad) Update UI and save current version
+            _logger.Info("Successfully updated to version: " + release.TagName);
+
             Properties.Settings.Default.CurrentVersion = release.TagName;
             Properties.Settings.Default.Save();
 
-            _logger.Info("Successfully updated to version: " + release.TagName);
-            //Messenger.Default.Send(new UpdateStatus { Status = "Successfully updated to version: " + release.TagName });
-            //Messenger.Default.Send(new ReleaseDownloaded
-            //{
-            //    Release = release,
-            //    Result = ConnectionResult.Success
-            //});
+            newSettings.LatestRelease = release;
+            if (!newSettings.StoreSettings)
+            {
+                newSettings.AccessToken = Program.Settings.AccessToken;
+                newSettings.SettingsLocation = Program.Settings.SettingsLocation;
+            }
+
+            // (Konrad) Update Settings and publish to any GUI Clients
+            // Note: Since we are not overriding Remotely stored settings this scenario is possible:
+            // - Windows gets shut down. Next time it powers up, settings will be pulled from Remote
+            // - Remote settings are not updated by ZombieService here, so the GUI would reflect them, again.
+            Program.Settings = newSettings;
+
+            var update = new GuiUpdate
+            {
+                Settings = Program.Settings,
+                Status = Status.Succeeded,
+                Message = "Successfully updated to version: " + release.TagName
+            };
+            new Thread(() => new ZombieMessenger().Broadcast(update))
+            {
+                Priority = ThreadPriority.BelowNormal,
+                IsBackground = true
+            }.Start();
         }
 
         #region Utilities
@@ -268,24 +297,6 @@ namespace ZombieService.Runner
             }
 
             return true;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="message"></param>
-        /// <param name="result"></param>
-        /// <param name="release"></param>
-        private static void UpdateUI(string message, ConnectionResult result, ReleaseObject release = null)
-        {
-            _logger.Info(message);
-            //Messenger.Default.Send(new UpdateStatus { Status = message });
-            //Messenger.Default.Send(new ReleaseDownloaded
-            //{
-            //    Release = release,
-            //    Settings = null,
-            //    Result = result
-            //});
         }
 
         #endregion

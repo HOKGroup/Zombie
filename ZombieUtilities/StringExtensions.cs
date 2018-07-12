@@ -1,7 +1,7 @@
 ﻿
 namespace ZombieUtilities
 {
-    public static class StringExtensions
+    public static class Extensions
     {
         /// <summary>
         /// Extension for String so that it removes the last character if it matches input.

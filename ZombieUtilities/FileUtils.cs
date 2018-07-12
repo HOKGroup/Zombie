@@ -22,17 +22,6 @@ namespace Zombie.Utilities
             return dir;
         }
 
-        ///// <summary>
-        ///// 
-        ///// </summary>
-        ///// <returns></returns>
-        //public static string GetZombieTempDirectory()
-        //{
-        //    var tempDir = Path.Combine(Path.GetTempPath(), "Zombie");
-        //    if (!Directory.Exists(tempDir)) Directory.CreateDirectory(tempDir);
-        //    return tempDir;
-        //}
-
         /// <summary>
         /// 
         /// </summary>

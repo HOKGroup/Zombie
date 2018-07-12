@@ -56,6 +56,7 @@
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <HintPath>..\packages\NLog.4.5.6\lib\net45\NLog.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationFramework" />
     <Reference Include="RestSharp, Version=106.3.1.0, Culture=neutral, PublicKeyToken=598062e77f915f75, processorArchitecture=MSIL">
       <HintPath>..\packages\RestSharp.106.3.1\lib\net452\RestSharp.dll</HintPath>
     </Reference>
@@ -79,7 +80,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Host\ZombieTalker.cs" />
+    <Compile Include="Host\ZombieService.cs" />
     <Compile Include="ProjectInstaller.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -93,6 +94,7 @@
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
     <Compile Include="Runner\RunnerUtils.cs" />
+    <Compile Include="Runner\ZombieMessenger.cs" />
     <Compile Include="Runner\ZombieRunner.cs" />
     <Compile Include="ZombieService.cs">
       <SubType>Component</SubType>
@@ -123,6 +125,7 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Host\Service.svc" />
     <Content Include="iconsZombie.ico" />
   </ItemGroup>
   <ItemGroup>
@@ -149,18 +152,7 @@
 if exist "$(TargetPath)" if not exist "$(TargetPath).locked" move "$(TargetPath)" "$(TargetPath).locked"</PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>sc query "ZombieService"  |find "ZombieService" &gt;nul
-if %25errorlevel%25==0 goto ServiceInstalled
-if %25errorlevel%25 NEQ '0' goto ServiceNotInstalled
-
-:ServiceInstalled
-echo Uninstalling ZombieService...
-C:\Windows\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe /u $(TargetPath)
-goto ServiceNotInstalled
-
-:ServiceNotInstalled
-echo ZombieService not installed. Installing...
-C:\Windows\Microsoft.NET\Framework\v4.0.30319\InstallUtil.exe $(TargetPath)
-exit 0</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>

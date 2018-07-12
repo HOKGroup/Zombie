@@ -1,9 +1,14 @@
-﻿using System;
+﻿#region References
+
+using System;
 using System.ServiceModel;
 using System.Windows;
+using GalaSoft.MvvmLight.Messaging;
 using NLog;
 using Zombie.Utilities;
-using ZombieUtilities;
+using ZombieUtilities.Host;
+
+#endregion
 
 namespace Zombie
 {
@@ -14,54 +19,71 @@ namespace Zombie
     {
         private static Logger _logger = LogManager.GetCurrentClassLogger();
         public static ZombieSettings Settings { get; set; } = new ZombieSettings();
-        public static ZombieDispatcher ZombieDispatcher { get; set; } = new ZombieDispatcher();
         public static bool ConnectionFailed { get; set; }
+        public static ZombieServiceClient Client { get; set; }
 
-        private void Application_Startup(object sender, StartupEventArgs e)
+        public delegate void GuiUpdateCallbackHandler(GuiUpdate update);
+        public static event GuiUpdateCallbackHandler GuiUpdateCallbackEvent;
+
+        [CallbackBehavior(UseSynchronizationContext = false)]
+        public class ZombieServiceCallback : IZombieServiceCallback
         {
-            var pipeFactory = new ChannelFactory<IZombieTalker>(new NetNamedPipeBinding(),
-                new EndpointAddress("net.pipe://localhost/PipeGetSettings"));
-            ZombieDispatcher.GetSettingsTalker = pipeFactory.CreateChannel();
+            public void GuiUpdate(GuiUpdate update)
+            {
+                GuiUpdateCallbackEvent(update);
+            }
+        }
 
-            var pipeFactory1 = new ChannelFactory<IZombieTalker>(new NetNamedPipeBinding(),
-                new EndpointAddress("net.pipe://localhost/PipeSetSettings"));
-            ZombieDispatcher.SetSettingsTalker = pipeFactory1.CreateChannel();
-
-            var pipeFactory2 = new ChannelFactory<IZombieTalker>(new NetNamedPipeBinding(),
-                new EndpointAddress("net.pipe://localhost/PipeExecuteUpdate"));
-            ZombieDispatcher.ExecuteUpdateTalker = pipeFactory2.CreateChannel();
-
-            var pipeFactory3 = new ChannelFactory<IZombieTalker>(new NetNamedPipeBinding(),
-                new EndpointAddress("net.pipe://localhost/PipeChangeFrequency"));
-            ZombieDispatcher.ChangeFrequencyTalker = pipeFactory3.CreateChannel();
-
+        private void OnStartup(object sender, StartupEventArgs e)
+        {
             try
             {
+                var binding = ServiceUtils.CreateClientBinding(ServiceUtils.FreeTcpPort());
+                var endpoint = new EndpointAddress(new Uri("http://localhost:8000/ZombieService/Service.svc"));
+                var context = new InstanceContext(new ZombieServiceCallback());
+                Client = new ZombieServiceClient(context, binding, endpoint);
+
+                GuiUpdateCallbackHandler callbackHandler = OnGuiUpdate;
+                GuiUpdateCallbackEvent += callbackHandler;
+
+                Client.Open();
+                Client.Subscribe();
+
                 // (Konrad) Get latest settings from ZombieService
-                Settings = ZombieDispatcher.GetSettingsTalker.GetSettings();
+                Settings = Client.GetSettings();
             }
             catch (Exception ex)
             {
                 ConnectionFailed = true;
-                _logger.Fatal(ex);
+                _logger.Fatal(ex.Message);
             }
 
             // (Konrad) Create the startup window
-            var m = new ZombieModel();
-            var vm = new ZombieViewModel(Settings, m);
+            var vm = new ZombieViewModel(Settings);
             var view = new ZombieView
             {
                 DataContext = vm
             };
             view.Show();
         }
-    }
 
-    public class ZombieDispatcher
-    {
-        public IZombieTalker GetSettingsTalker { get; set; }
-        public IZombieTalker SetSettingsTalker { get; set; }
-        public IZombieTalker ExecuteUpdateTalker { get; set; }
-        public IZombieTalker ChangeFrequencyTalker { get; set; }
+        private static void OnGuiUpdate(GuiUpdate update)
+        {
+            Messenger.Default.Send(update);
+        }
+
+        private void OnExit(object sender, ExitEventArgs e)
+        {
+            try
+            {
+                Client.Unsubscribe();
+                Client.Close();
+                _logger.Info("Exited Zombie!");
+            }
+            catch (Exception ex)
+            {
+                _logger.Fatal(ex.Message);
+            }
+        }
     }
 }

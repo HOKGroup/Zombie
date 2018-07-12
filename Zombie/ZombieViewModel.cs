@@ -7,9 +7,11 @@ using System.Windows.Controls;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
+using NLog;
 using Zombie.Controls;
 using Zombie.Utilities;
 using Zombie.Utilities.Wpf;
+using ZombieUtilities.Host;
 using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 #endregion
@@ -20,10 +22,9 @@ namespace Zombie
     {
         #region Properties
 
-        private ZombieModel Model { get; set; }
+        private static Logger _logger = LogManager.GetCurrentClassLogger();
         private bool Cancel { get; set; } = true;
         private TextBlock Control { get; set; }
-        //public UpdateRunner Runner { get; set; }
         public ObservableCollection<TabItem> TabItems { get; set; }
         public RelayCommand WindowClosing { get; set; }
         public RelayCommand<Window> WindowLoaded { get; set; }
@@ -38,17 +39,16 @@ namespace Zombie
 
         #endregion
 
-        public ZombieViewModel(ZombieSettings settings, ZombieModel model)
+        public ZombieViewModel(ZombieSettings settings)
         {
             Settings = settings;
-            Model = model;
 
             WindowClosing = new RelayCommand(OnWindowClosing);
             WindowLoaded = new RelayCommand<Window>(OnWindowLoaded);
 
-            var gitHub = new TabItem { Content = new GitHubView { DataContext = new GitHubViewModel(Settings, model) }, Header = "GitHub" };
-            var mappings = new TabItem { Content = new MappingsView { DataContext = new MappingsViewModel(Settings, model) }, Header = "Mappings" };
-            var general = new TabItem { Content = new GeneralView { DataContext = new GeneralViewModel(Settings, model) }, Header = "General" };
+            var gitHub = new TabItem { Content = new GitHubView { DataContext = new GitHubViewModel(Settings) }, Header = "GitHub" };
+            var mappings = new TabItem { Content = new MappingsView { DataContext = new MappingsViewModel(Settings) }, Header = "Mappings" };
+            var general = new TabItem { Content = new GeneralView { DataContext = new GeneralViewModel(Settings) }, Header = "General" };
             TabItems = new ObservableCollection<TabItem>
             {
                 gitHub,
@@ -57,17 +57,35 @@ namespace Zombie
             };
 
             Messenger.Default.Register<StoreSettings>(this, OnStoreSettings);
-            Messenger.Default.Register<ChangeFrequency>(this, OnChangeFrequency);
-            Messenger.Default.Register<UpdateStatus>(this, OnUpdateStatus);
+            Messenger.Default.Register<GuiUpdate>(this, OnGuiUpdate);
         }
 
         #region Message Handlers
 
-        private void OnUpdateStatus(UpdateStatus obj)
+        /// <summary>
+        /// This method handles all GUI updates coming from the ZombieService. Since we stored the
+        /// reference to a control on this view model, it's a good place to set status manager updates
+        /// from here. They have to be dispatched on a UI thread. 
+        /// </summary>
+        /// <param name="obj"></param>
+        private void OnGuiUpdate(GuiUpdate obj)
         {
-            // (Konrad) Since the UpdateRunner runs on a pool thread we can't set UI controls from there.
-            // One way to set their status is to use a Dispatcher that every UI control has.
-            Control?.Dispatcher.Invoke(() => { StatusBarManager.StatusLabel.Text = obj.Status; });
+            switch (obj.Status)
+            {
+                case Status.Failed:
+                    Control?.Dispatcher.Invoke(() => { StatusBarManager.StatusLabel.Text = obj.Message; });
+                    break;
+                case Status.Succeeded:
+                    Control?.Dispatcher.Invoke(() => { StatusBarManager.StatusLabel.Text = obj.Message; });
+                    break;
+                case Status.UpToDate:
+                    // (Konrad) Since the UpdateRunner runs on a pool thread we can't set UI controls from there.
+                    // One way to set their status is to use a Dispatcher that every UI control has.
+                    Control?.Dispatcher.Invoke(() => { StatusBarManager.StatusLabel.Text = obj.Message; });
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         private void OnStoreSettings(StoreSettings obj)
@@ -122,11 +140,6 @@ namespace Zombie
             StatusBarManager.StatusLabel.Text = "Zombie Settings safely stored!";
         }
 
-        private void OnChangeFrequency(ChangeFrequency obj)
-        {
-            
-        }
-
         #endregion
 
         #region Command Handlers
@@ -145,11 +158,11 @@ namespace Zombie
 
             try
             {
-                App.ZombieDispatcher.SetSettingsTalker.SetSettings(Settings);
+                var unused = App.Client.SetSettings(Settings);
             }
             catch (Exception e)
             {
-                // ignored
+                _logger.Fatal(e.Message);
             }
         }
 

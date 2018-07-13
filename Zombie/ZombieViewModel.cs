@@ -58,9 +58,15 @@ namespace Zombie
 
             Messenger.Default.Register<StoreSettings>(this, OnStoreSettings);
             Messenger.Default.Register<GuiUpdate>(this, OnGuiUpdate);
+            Messenger.Default.Register<UpdateStatus>(this, OnUpdateStatus);
         }
 
         #region Message Handlers
+
+        private void OnUpdateStatus(UpdateStatus obj)
+        {
+            Control?.Dispatcher.Invoke(() => { StatusBarManager.StatusLabel.Text = obj.Message; });
+        }
 
         /// <summary>
         /// This method handles all GUI updates coming from the ZombieService. Since we stored the
@@ -174,10 +180,6 @@ namespace Zombie
             // (Konrad) Store reference to UI Control. It will be needed when
             // settings status messages from a pool thread.
             Control = ((ZombieView) win).statusLabel;
-
-            if (App.ConnectionFailed)
-                StatusBarManager.StatusLabel.Text =
-                    "Failed to connect to ZombieService. Make sure it's alive and kicking!";
         }
 
         #endregion

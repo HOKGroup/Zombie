@@ -61,18 +61,7 @@ namespace ZombieService.Runner
             var currentVersion = Properties.Settings.Default["CurrentVersion"].ToString();
             if (!release.Assets.Any() || new Version(release.TagName).CompareTo(new Version(currentVersion)) <= 0)
             {
-                var update1 = new GuiUpdate
-                {
-                    Settings = Program.Settings,
-                    Status = Status.UpToDate,
-                    Message = "Your release is up to date!"
-                };
-                new Thread(() => new ZombieMessenger().Broadcast(update1))
-                {
-                    Priority = ThreadPriority.BelowNormal,
-                    IsBackground = true
-                }.Start();
-
+                PublishGuiUpdate(Program.Settings, Status.UpToDate, "Your release is up to date!");
                 _logger.Info("Your release is up to date!");
                 return;
             }
@@ -179,8 +168,6 @@ namespace ZombieService.Runner
                 return;
             }
 
-            _logger.Info("Successfully updated to version: " + release.TagName);
-
             Properties.Settings.Default.CurrentVersion = release.TagName;
             Properties.Settings.Default.Save();
 
@@ -197,11 +184,25 @@ namespace ZombieService.Runner
             // - Remote settings are not updated by ZombieService here, so the GUI would reflect them, again.
             Program.Settings = newSettings;
 
+            PublishGuiUpdate(Program.Settings, Status.Succeeded, "Successfully updated to version: " + release.TagName);
+        }
+
+        #region Utilities
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="settings"></param>
+        /// <param name="status"></param>
+        /// <param name="message"></param>
+        private static void PublishGuiUpdate(ZombieSettings settings, Status status, string message)
+        {
+            _logger.Info("GUI Update: \nStatus: " + status + "\nMessage: " + message);
             var update = new GuiUpdate
             {
-                Settings = Program.Settings,
-                Status = Status.Succeeded,
-                Message = "Successfully updated to version: " + release.TagName
+                Settings = settings,
+                Status = status,
+                Message = message
             };
             new Thread(() => new ZombieMessenger().Broadcast(update))
             {
@@ -209,8 +210,6 @@ namespace ZombieService.Runner
                 IsBackground = true
             }.Start();
         }
-
-        #region Utilities
 
         /// <summary>
         /// 

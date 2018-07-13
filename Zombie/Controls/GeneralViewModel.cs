@@ -41,6 +41,8 @@ namespace Zombie.Controls
             Messenger.Default.Register<GuiUpdate>(this, OnGuiUpdate);
         }
 
+        #region Message Handlers
+
         private void OnGuiUpdate(GuiUpdate obj)
         {
             switch (obj.Status)
@@ -48,14 +50,15 @@ namespace Zombie.Controls
                 case Status.Failed:
                     break;
                 case Status.Succeeded:
-                    Settings = obj.Settings;
-                    break;
                 case Status.UpToDate:
+                    Settings = obj.Settings;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
+
+        #endregion
 
         #region Command Handlers
 

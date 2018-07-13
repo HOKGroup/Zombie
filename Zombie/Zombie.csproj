@@ -138,6 +138,7 @@
     <Compile Include="Utilities\Wpf\Converters.cs" />
     <Compile Include="Utilities\EnumHelper.cs" />
     <Compile Include="Utilities\Messages.cs" />
+    <Compile Include="Utilities\Extensions.cs" />
     <Compile Include="Utilities\Wpf\StatusBarManager.cs" />
     <Compile Include="Utilities\Wpf\WatermarkAdorner.cs" />
     <Compile Include="Utilities\Wpf\WatermarkService.cs" />

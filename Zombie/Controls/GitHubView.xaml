@@ -90,6 +90,10 @@
                             <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
                             <Setter TargetName="image2" Property="Visibility" Value="Visible" />
                         </Trigger>
+                        <DataTrigger Binding="{Binding Path=IsPrereleaseMode}" Value="True">
+                            <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image2" Property="Visibility" Value="Visible" />
+                        </DataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Button.Template>

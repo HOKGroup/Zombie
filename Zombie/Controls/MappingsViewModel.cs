@@ -1,13 +1,17 @@
 ﻿#region References
 
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Windows;
 using System.Windows.Data;
+using System.Windows.Threading;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using Zombie.Utilities;
+using ZombieUtilities.Host;
 
 #endregion
 
@@ -54,7 +58,7 @@ namespace Zombie.Controls
             AddLocation = new RelayCommand(OnAddLocation);
 
             Messenger.Default.Register<LocationRemoved>(this, OnLocationRemoved);
-            //Messenger.Default.Register<ReleaseDownloaded>(this, OnReleaseDownloaded);
+            Messenger.Default.Register<GuiUpdate>(this, OnGuiUpdate);
 
             // (Konrad) Populate UI with stored settings
             PopulateSourceFromSettings(settings);
@@ -63,78 +67,107 @@ namespace Zombie.Controls
 
         #region Message Handlers
 
-        //private void OnReleaseDownloaded(ReleaseDownloaded obj)
-        //{
-        //    // TODO: I am also shipping here a new settings object since these could also be updated.
-        //    // TODO: We need to use that new Settings to set them on other objects.
-        //    //if (obj.Result != ConnectionResult.Success) return;
+        private void OnGuiUpdate(GuiUpdate obj)
+        {
+            switch (obj.Status)
+            {
+                case Status.Failed:
+                    return;
+                case Status.Succeeded:
+                    ProcessSucceeded(obj.Settings);
+                    return;
+                case Status.UpToDate:
+                    ProcessUpToDate(obj.Settings);
+                    return;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
 
-        //    // (Konrad) Get all allocated assets. They would be allocated if they were
-        //    // previously deserialized from Settings, or set on previous cycle.
-        //    var allocated = new HashSet<AssetObject>();
-        //    foreach (var l in SourceLocations)
-        //    {
-        //        foreach (var a in l.Assets)
-        //        {
-        //            allocated.Add(a.Asset);
-        //        }
-        //    }
-        //    foreach (var l in Locations)
-        //    {
-        //        foreach (var a in l.Assets)
-        //        {
-        //            allocated.Add(a.Asset);
-        //        }
-        //    }
+        private void ProcessUpToDate(ZombieSettings settings)
+        {
+            Application.Current.Dispatcher.BeginInvoke( DispatcherPriority.Background, new Action(() => {
+                Locations.Clear();
+                SourceLocations.Clear();
 
-        //    // (Konrad) Find out if there are any new assets downloaded that were not accounted for.
-        //    // These would be added to the SourceLocations collection.
-        //    var added = new HashSet<AssetObject>();
-        //    foreach (var a in obj.Release.Assets)
-        //    {
-        //        if (allocated.Contains(a))
-        //        {
-        //            allocated.Remove(a);
-        //            continue;
-        //        }
+                Settings = settings;
 
-        //        added.Add(a);
-        //    }
+                // (Konrad) Populate UI with stored settings
+                PopulateSourceFromSettings(settings);
+                if (settings.DestinationAssets.Any()) PopulateDestinationFromSettings(settings);
+            }));
+        }
 
-        //    // (Konrad) Whatever is left in allocated needs to be deleted.
-        //    foreach (var l in Locations)
-        //    {
-        //        l.Assets = l.Assets.Where(x => !allocated.Contains(x.Asset)).ToObservableCollection();
-        //    }
+        private void ProcessSucceeded(ZombieSettings settings)
+        {
+            Settings = settings;
 
-        //    // (Konrad) If any location is now empty let's remove it.
-        //    Locations = Locations.Where(x => x.Assets.Any()).ToObservableCollection();
+            // (Konrad) Get all allocated assets. They would be allocated if they were
+            // previously deserialized from Settings, or set on previous cycle.
+            var allocated = new HashSet<AssetObject>();
+            foreach (var l in SourceLocations)
+            {
+                foreach (var a in l.Assets)
+                {
+                    allocated.Add(a.Asset);
+                }
+            }
+            foreach (var l in Locations)
+            {
+                foreach (var a in l.Assets)
+                {
+                    allocated.Add(a.Asset);
+                }
+            }
 
-        //    // (Konrad) Add all new assets to source locations.
-        //    // Since we are calling this from another thread (Timer runs on a thread pool)
-        //    // we need to make sure that the collection is locked.
-        //    lock (_lock)
-        //    {
-        //        SourceLocations.Clear();
+            // (Konrad) Find out if there are any new assets downloaded that were not accounted for.
+            // These would be added to the SourceLocations collection.
+            var added = new HashSet<AssetObject>();
+            foreach (var a in settings.LatestRelease.Assets)
+            {
+                if (allocated.Contains(a))
+                {
+                    allocated.Remove(a);
+                    continue;
+                }
 
-        //        var loc = new LocationsViewModel(new Location
-        //        {
-        //            IsSourceLocation = true,
-        //            MaxHeight = 557
-        //        }, !added.Any());
+                added.Add(a);
+            }
 
-        //        foreach (var asset in added)
-        //        {
-        //            var vm = new AssetViewModel(asset)
-        //            {
-        //                Parent = loc
-        //            };
-        //            if (!loc.Assets.Contains(vm)) loc.Assets.Add(vm);
-        //        }
+            // (Konrad) Whatever is left in allocated needs to be deleted.
+            foreach (var l in Locations)
+            {
+                l.Assets = l.Assets.Where(x => !allocated.Contains(x.Asset)).ToObservableCollection();
+            }
 
-        //        SourceLocations.Add(loc);
-        //    }
-        //}
+            // (Konrad) If any location is now empty let's remove it.
+            Locations = Locations.Where(x => x.Assets.Any()).ToObservableCollection();
+
+            // (Konrad) Add all new assets to source locations.
+            // Since we are calling this from another thread (Timer runs on a thread pool)
+            // we need to make sure that the collection is locked.
+            lock (_sourceLock)
+            {
+                SourceLocations.Clear();
+
+                var loc = new LocationsViewModel(new Location
+                {
+                    IsSourceLocation = true,
+                    MaxHeight = 557
+                }, !added.Any());
+
+                foreach (var asset in added)
+                {
+                    var vm = new AssetViewModel(asset)
+                    {
+                        Parent = loc
+                    };
+                    if (!loc.Assets.Contains(vm)) loc.Assets.Add(vm);
+                }
+
+                SourceLocations.Add(loc);
+            }
+        }
 
         private void OnLocationRemoved(LocationRemoved obj)
         {

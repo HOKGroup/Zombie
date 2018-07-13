@@ -20,7 +20,7 @@ namespace ZombieUtilities.Host
             var binding = new WSDualHttpBinding
             {
                 OpenTimeout = new TimeSpan(0, 1, 0),
-                CloseTimeout = new TimeSpan(0, 1, 0),
+                CloseTimeout = new TimeSpan(0, 0, 10),
                 SendTimeout = new TimeSpan(0, 1, 0),
                 ReceiveTimeout = TimeSpan.MaxValue,
                 BypassProxyOnLocal = false,

@@ -21,6 +21,13 @@ namespace Zombie.Controls
         public RelayCommand Update { get; set; }
         public RelayCommand DownloadPrerelease { get; set; }
 
+        private bool _isPrereleaseMode;
+        public bool IsPrereleaseMode
+        {
+            get { return _isPrereleaseMode; }
+            set { _isPrereleaseMode = value; RaisePropertyChanged(() => IsPrereleaseMode); }
+        }
+
         private ZombieSettings _settings;
         public ZombieSettings Settings
         {
@@ -40,6 +47,8 @@ namespace Zombie.Controls
             Messenger.Default.Register<GuiUpdate>(this, OnGuiUpdate);
         }
 
+        #region Message Handlers
+
         private void OnGuiUpdate(GuiUpdate obj)
         {
             switch (obj.Status)
@@ -50,16 +59,35 @@ namespace Zombie.Controls
                     Settings = obj.Settings;
                     break;
                 case Status.UpToDate:
+                    Settings = obj.Settings;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
+        #endregion
+
         #region Command Handlers
 
         private void OnDownloadPrerelease()
         {
+            if (IsPrereleaseMode)
+            {
+                // (Konrad) If we are already in pre-release mode let's disable it.
+                DisablePreReleaseMode();
+
+                // (Konrad) Trigger manual update so that UI updates to whatever current settings are.
+                OnUpdate();
+
+                return;
+            }
+
+            // (Konrad) Enable pre-release mode. 
+            StatusBarManager.StatusLabel.Text = "Entered Pre-Release Mode. Live updates from ZombieService will be aborted.";
+            App.StopUpdates = true;
+            IsPrereleaseMode = !IsPrereleaseMode;
+
             var prerelease = GitHubUtils.DownloadPreRelease(Settings);
             if (prerelease == null)
             {
@@ -67,11 +95,22 @@ namespace Zombie.Controls
                 return;
             }
 
+            StatusBarManager.StatusLabel.Text = "Found new Pre-Release! " + prerelease.TagName;
             Settings.LatestRelease = prerelease;
+
+            Messenger.Default.Send(new GuiUpdate
+            {
+                Settings = Settings,
+                Message = "Found new Pre-Release! " + prerelease.TagName,
+                Status = Status.Succeeded
+            });
         }
 
-        private static void OnUpdate()
+        private void OnUpdate()
         {
+            // (Konrad) Disable pre-release mode.
+            if (IsPrereleaseMode) DisablePreReleaseMode();
+
             try
             {
                 App.Client.ExecuteUpdate();
@@ -80,6 +119,12 @@ namespace Zombie.Controls
             {
                 _logger.Fatal(e.Message);
             }
+        }
+
+        private void DisablePreReleaseMode()
+        {
+            IsPrereleaseMode = !IsPrereleaseMode;
+            App.StopUpdates = false;
         }
 
         #endregion

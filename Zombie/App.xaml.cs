@@ -19,8 +19,8 @@ namespace Zombie
     {
         private static Logger _logger = LogManager.GetCurrentClassLogger();
         public static ZombieSettings Settings { get; set; } = new ZombieSettings();
-        public static bool ConnectionFailed { get; set; }
         public static ZombieServiceClient Client { get; set; }
+        public static bool StopUpdates { get; set; }
 
         public delegate void GuiUpdateCallbackHandler(GuiUpdate update);
         public static event GuiUpdateCallbackHandler GuiUpdateCallbackEvent;
@@ -36,6 +36,7 @@ namespace Zombie
 
         private void OnStartup(object sender, StartupEventArgs e)
         {
+            var connected = false;
             try
             {
                 var binding = ServiceUtils.CreateClientBinding(ServiceUtils.FreeTcpPort());
@@ -51,10 +52,10 @@ namespace Zombie
 
                 // (Konrad) Get latest settings from ZombieService
                 Settings = Client.GetSettings();
+                connected = true;
             }
             catch (Exception ex)
             {
-                ConnectionFailed = true;
                 _logger.Fatal(ex.Message);
             }
 
@@ -65,10 +66,16 @@ namespace Zombie
                 DataContext = vm
             };
             view.Show();
+
+            Messenger.Default.Send(connected
+                ? new UpdateStatus { Message = "Successfully connected to ZombieService!" }
+                : new UpdateStatus { Message = "Connection to ZombieService failed!" });
         }
 
         private static void OnGuiUpdate(GuiUpdate update)
         {
+            if (StopUpdates) return;
+
             Messenger.Default.Send(update);
         }
 
@@ -76,6 +83,7 @@ namespace Zombie
         {
             try
             {
+                Messenger.Default.Send(new UpdateStatus {Message = "Disconnecting from ZombieService..."});
                 Client.Unsubscribe();
                 Client.Close();
                 _logger.Info("Exited Zombie!");

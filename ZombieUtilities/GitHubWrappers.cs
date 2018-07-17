@@ -1,35 +1,77 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using Newtonsoft.Json;
 
 namespace Zombie.Utilities
 {
-    public class ReleaseObject
+    public class ReleaseObject : INotifyPropertyChanged
     {
+        private int _id;
         [JsonProperty("id")]
-        public int Id { get; set; }
+        public int Id
+        {
+            get { return _id; }
+            set { _id = value; RaisePropertyChanged("Id"); }
+        }
 
+        private string _tagName;
         [JsonProperty("tag_name")]
-        public string TagName { get; set; }
+        public string TagName
+        {
+            get { return _tagName; }
+            set { _tagName = value; RaisePropertyChanged("TagName"); }
+        }
 
+        private string _name;
         [JsonProperty("name")]
-        public string Name { get; set; }
+        public string Name
+        {
+            get { return _name; }
+            set { _name = value; RaisePropertyChanged("Name"); }
+        }
 
+        private string _body;
         [JsonProperty("body")]
-        public string Body { get; set; }
+        public string Body
+        {
+            get { return _body; }
+            set { _body = value; RaisePropertyChanged("Body"); }
+        }
 
+        private bool _prerelease;
         [JsonProperty("prerelease")]
-        public bool Prerelease { get; set; }
+        public bool Prerelease
+        {
+            get { return _prerelease; }
+            set { _prerelease = value; RaisePropertyChanged("Prerelease"); }
+        }
 
+        private DateTime _publishedAt;
         [JsonProperty("published_at")]
-        public DateTime PublishedAt { get; set; }
+        public DateTime PublishedAt
+        {
+            get { return _publishedAt; }
+            set { _publishedAt = value; RaisePropertyChanged("PublishedAt"); }
+        }
 
+        private AuthorObject _author;
         [JsonProperty("author")]
-        public AuthorObject Author { get; set; }
+        public AuthorObject Author
+        {
+            get { return _author; }
+            set { _author = value; RaisePropertyChanged("Author"); }
+        }
 
         [JsonProperty("assets")]
-        public List<AssetObject> Assets { get; set; }
+        public List<AssetObject> Assets { get; set; } = new List<AssetObject>();
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void RaisePropertyChanged(string info)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
+        }
     }
 
     public class AuthorObject

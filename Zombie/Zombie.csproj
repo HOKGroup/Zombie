@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\SourceLink.Create.GitHub.2.8.0\build\SourceLink.Create.GitHub.props" Condition="Exists('..\packages\SourceLink.Create.GitHub.2.8.0\build\SourceLink.Create.GitHub.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -28,6 +29,8 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -79,6 +82,9 @@
     <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c, processorArchitecture=MSIL">
       <HintPath>..\packages\NLog.4.5.6\lib\net45\NLog.dll</HintPath>
     </Reference>
+    <Reference Include="Octokit, Version=0.30.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Octokit.0.30.0\lib\net45\Octokit.dll</HintPath>
+    </Reference>
     <Reference Include="RestSharp, Version=106.3.1.0, Culture=neutral, PublicKeyToken=598062e77f915f75, processorArchitecture=MSIL">
       <HintPath>..\packages\RestSharp.106.3.1\lib\net452\RestSharp.dll</HintPath>
     </Reference>
@@ -119,6 +125,7 @@
       <DependentUpon>AssetView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\AssetViewModel.cs" />
+    <Compile Include="ZombieModel.cs" />
     <Compile Include="Controls\LocationsView.xaml.cs">
       <DependentUpon>LocationsView.xaml</DependentUpon>
     </Compile>
@@ -261,12 +268,6 @@
     <Resource Include="Resources\previewOn_32x32.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Resources\saveLocalHover_32x32.png" />
-    <Resource Include="Resources\saveLocal_32x32.png" />
-    <Resource Include="Resources\saveRemoteHover_32x32.png" />
-    <Resource Include="Resources\saveRemote_32x32.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Resources\addHover_32x32.png" />
     <Resource Include="Resources\add_32x32.png" />
   </ItemGroup>
@@ -292,9 +293,31 @@
     <Resource Include="Resources\updateHover_32x32.png" />
     <Resource Include="Resources\update_32x32.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\saveLocalHover_32x32.png" />
+    <Resource Include="Resources\saveLocal_32x32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\updateDisabled_32x32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\mergeDisabled_32x32.png" />
+    <Resource Include="Resources\mergeHover_32x32.png" />
+    <Resource Include="Resources\merge_32x32.png" />
+    <Resource Include="Resources\saveRemoteHover_32x32.png" />
+    <Resource Include="Resources\saveRemote_32x32.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>if exist "$(TargetPath).locked" del "$(TargetPath).locked"
 if exist "$(TargetPath)" if not exist "$(TargetPath).locked" move "$(TargetPath)" "$(TargetPath).locked"</PreBuildEvent>
   </PropertyGroup>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\SourceLink.Create.GitHub.2.8.0\build\SourceLink.Create.GitHub.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SourceLink.Create.GitHub.2.8.0\build\SourceLink.Create.GitHub.props'))" />
+    <Error Condition="!Exists('..\packages\SourceLink.Create.GitHub.2.8.0\build\SourceLink.Create.GitHub.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SourceLink.Create.GitHub.2.8.0\build\SourceLink.Create.GitHub.targets'))" />
+  </Target>
+  <Import Project="..\packages\SourceLink.Create.GitHub.2.8.0\build\SourceLink.Create.GitHub.targets" Condition="Exists('..\packages\SourceLink.Create.GitHub.2.8.0\build\SourceLink.Create.GitHub.targets')" />
 </Project>

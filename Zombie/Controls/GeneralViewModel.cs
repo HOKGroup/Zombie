@@ -6,7 +6,7 @@ using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using NLog;
 using Zombie.Utilities;
-using ZombieUtilities.Host;
+using ZombieUtilities.Client;
 
 #endregion
 
@@ -17,9 +17,11 @@ namespace Zombie.Controls
         #region Properties
 
         private static Logger _logger = LogManager.GetCurrentClassLogger();
+        public ZombieModel Model { get; set; }
         public RelayCommand SaveSettingsLocal { get; set; }
         public RelayCommand SaveSettingsRemote { get; set; }
         public RelayCommand FrequencyChanged { get; set; }
+        public RelayCommand PushToGitHub { get; set; }
 
         private ZombieSettings _settings;
         public ZombieSettings Settings
@@ -37,6 +39,7 @@ namespace Zombie.Controls
             SaveSettingsLocal = new RelayCommand(OnSaveSettingsLocal);
             SaveSettingsRemote = new RelayCommand(OnSaveSettingsRemote);
             FrequencyChanged = new RelayCommand(OnFrequencyChanged);
+            PushToGitHub = new RelayCommand(OnPushToGitHub);
 
             Messenger.Default.Register<GuiUpdate>(this, OnGuiUpdate);
         }
@@ -61,6 +64,11 @@ namespace Zombie.Controls
         #endregion
 
         #region Command Handlers
+
+        private static void OnPushToGitHub()
+        {
+            Messenger.Default.Send(new StoreSettings { Type = SettingsType.GitHub });
+        }
 
         private static void OnSaveSettingsRemote()
         {

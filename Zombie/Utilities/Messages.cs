@@ -33,6 +33,7 @@ namespace Zombie.Utilities
     public enum SettingsType
     {
         Local,
-        Remote
+        Remote,
+        GitHub
     }
 }

@@ -7,7 +7,7 @@ using GalaSoft.MvvmLight.Messaging;
 using NLog;
 using Zombie.Utilities;
 using Zombie.Utilities.Wpf;
-using ZombieUtilities.Host;
+using ZombieUtilities.Client;
 
 #endregion
 
@@ -18,8 +18,10 @@ namespace Zombie.Controls
         #region Properties
 
         private static Logger _logger = LogManager.GetCurrentClassLogger();
+        private ZombieModel Model { get; set; }
         public RelayCommand Update { get; set; }
         public RelayCommand DownloadPrerelease { get; set; }
+        public RelayCommand PushToGitHub { get; set; }
 
         private bool _isPrereleaseMode;
         public bool IsPrereleaseMode
@@ -37,12 +39,14 @@ namespace Zombie.Controls
 
         #endregion
 
-        public GitHubViewModel(ZombieSettings settings)
+        public GitHubViewModel(ZombieSettings settings, ZombieModel model)
         {
             Settings = settings;
+            Model = model;
 
             Update = new RelayCommand(OnUpdate);
             DownloadPrerelease = new RelayCommand(OnDownloadPrerelease);
+            PushToGitHub = new RelayCommand(OnPushToGitHub);
 
             Messenger.Default.Register<GuiUpdate>(this, OnGuiUpdate);
         }
@@ -70,6 +74,11 @@ namespace Zombie.Controls
 
         #region Command Handlers
 
+        private void OnPushToGitHub()
+        {
+            Model.PushReleaseToGitHub(Settings);
+        }
+
         private void OnDownloadPrerelease()
         {
             if (IsPrereleaseMode)
@@ -88,22 +97,7 @@ namespace Zombie.Controls
             App.StopUpdates = true;
             IsPrereleaseMode = !IsPrereleaseMode;
 
-            var prerelease = GitHubUtils.DownloadPreRelease(Settings);
-            if (prerelease == null)
-            {
-                StatusBarManager.StatusLabel.Text = "Failed to download latest Pre-Release!";
-                return;
-            }
-
-            StatusBarManager.StatusLabel.Text = "Found new Pre-Release! " + prerelease.TagName;
-            Settings.LatestRelease = prerelease;
-
-            Messenger.Default.Send(new GuiUpdate
-            {
-                Settings = Settings,
-                Message = "Found new Pre-Release! " + prerelease.TagName,
-                Status = Status.Succeeded
-            });
+            Model.DownloadPreRelease(Settings);
         }
 
         private void OnUpdate()
@@ -120,6 +114,10 @@ namespace Zombie.Controls
                 _logger.Fatal(e.Message);
             }
         }
+
+        #endregion
+
+        #region Utilities
 
         private void DisablePreReleaseMode()
         {

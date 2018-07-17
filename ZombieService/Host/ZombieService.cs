@@ -3,44 +3,44 @@ using System.Reflection;
 using System.ServiceModel;
 using NLog;
 using Zombie.Utilities;
-using ZombieUtilities.Host;
+using ZombieUtilities.Client;
 
 namespace ZombieService.Host
 {
-    [ServiceContract(
-        Namespace = "http://ZombieService.Host", 
-        SessionMode = SessionMode.Required, 
-        CallbackContract = typeof(IZombieContract))]
-    public interface IZombieService
-    {
-        [OperationContract(IsOneWay = false, IsInitiating = true)]
-        void Subscribe();
+    //[ServiceContract(
+    //    Namespace = "http://ZombieService.Host", 
+    //    SessionMode = SessionMode.Required, 
+    //    CallbackContract = typeof(IZombieContract))]
+    //public interface IZombieService
+    //{
+    //    [OperationContract(IsOneWay = false, IsInitiating = true)]
+    //    void Subscribe();
 
-        [OperationContract(IsOneWay = false, IsInitiating = true)]
-        void Unsubscribe();
+    //    [OperationContract(IsOneWay = false, IsInitiating = true)]
+    //    void Unsubscribe();
 
-        [OperationContract(IsOneWay = false)]
-        void PublishGuiUpdate(GuiUpdate update);
+    //    [OperationContract(IsOneWay = false)]
+    //    void PublishGuiUpdate(GuiUpdate update);
 
-        [OperationContract]
-        ZombieSettings GetSettings();
+    //    [OperationContract]
+    //    ZombieSettings GetSettings();
 
-        [OperationContract]
-        bool SetSettings(ZombieSettings settings);
+    //    [OperationContract]
+    //    bool SetSettings(ZombieSettings settings);
 
-        [OperationContract]
-        void ExecuteUpdate();
+    //    [OperationContract]
+    //    void ExecuteUpdate();
 
-        [OperationContract]
-        void ChangeFrequency(Frequency frequency);
-    }
+    //    [OperationContract]
+    //    void ChangeFrequency(Frequency frequency);
+    //}
 
-    [ServiceContract]
-    public interface IZombieContract
-    {
-        [OperationContract(IsOneWay = true)]
-        void GuiUpdate(GuiUpdate update);
-    }
+    //[ServiceContract]
+    //public interface IZombieContract
+    //{
+    //    [OperationContract(IsOneWay = true)]
+    //    void GuiUpdate(GuiUpdate update);
+    //}
 
     public class GuiUpdateEventArgs : EventArgs
     {

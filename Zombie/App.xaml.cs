@@ -5,8 +5,10 @@ using System.ServiceModel;
 using System.Windows;
 using GalaSoft.MvvmLight.Messaging;
 using NLog;
+using Zombie.Controls;
 using Zombie.Utilities;
-using ZombieUtilities.Host;
+using ZombieService.Host;
+using ZombieUtilities.Client;
 
 #endregion
 
@@ -26,7 +28,7 @@ namespace Zombie
         public static event GuiUpdateCallbackHandler GuiUpdateCallbackEvent;
 
         [CallbackBehavior(UseSynchronizationContext = false)]
-        public class ZombieServiceCallback : IZombieServiceCallback
+        public class ZombieServiceCallback : IZombieContract
         {
             public void GuiUpdate(GuiUpdate update)
             {
@@ -60,7 +62,8 @@ namespace Zombie
             }
 
             // (Konrad) Create the startup window
-            var vm = new ZombieViewModel(Settings);
+            var m = new ZombieModel();
+            var vm = new ZombieViewModel(Settings, m);
             var view = new ZombieView
             {
                 DataContext = vm

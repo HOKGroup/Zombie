@@ -215,6 +215,40 @@ namespace Zombie.Utilities.Wpf
     }
 
     /// <summary>
+    /// 
+    /// </summary>
+    public class BoolToBrushConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return (bool) value
+                ? new SolidColorBrush(Color.FromRgb(43, 55, 79))
+                : new SolidColorBrush(Colors.Transparent);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public class FilePathToBoolConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return ((string) value).StartsWith("https://raw.githubusercontent.com", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
     /// Converts an Enum instance to Collection so that it can be displayed in a Combobox.
     /// </summary>
     [ValueConversion(typeof(Enum), typeof(IEnumerable<ValueDescription>))]

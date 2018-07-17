@@ -9,6 +9,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
         <utilities:EnumToCollectionConverter x:Key="EnumToCollectionConverter"/>
+        <utilities:FilePathToBoolConverter x:Key="FilePathToBoolConverter"/>
         <Style TargetType="TextBox">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsKeyboardFocused, RelativeSource={RelativeSource Self}}" Value="false">
@@ -45,7 +46,7 @@
                Foreground="Gray" />
         <Button Grid.Row="1" 
                 Grid.Column="1" 
-                ToolTip="Save Zombie Settings! (local)"
+                ToolTip="Save Zombie Settings in a 'local' format!"
                 Command="{Binding SaveSettingsLocal, Mode=OneWay}" 
                 Margin="0,0,10,0" 
                 Cursor="Hand" 
@@ -70,7 +71,7 @@
         </Button>
         <Button Grid.Row="1" 
                 Grid.Column="1" 
-                ToolTip="Save Zombie Settings! (remote)"
+                ToolTip="Save Zombie Settings in a 'remote' format!"
                 Command="{Binding SaveSettingsRemote, Mode=OneWay}" 
                 Margin="0,0,52,0" 
                 Cursor="Hand" 
@@ -93,6 +94,38 @@
                 </ControlTemplate>
             </Button.Template>
         </Button>
+        <Button Grid.Row="1" 
+                Grid.Column="1" 
+                ToolTip="Commit Zombie Settings to GitHub!"
+                Command="{Binding PushToGitHub, Mode=OneWay}" 
+                Margin="0,0,94,0" 
+                Cursor="Hand" 
+                IsEnabled="{Binding Path=Settings.SettingsLocation, Converter={StaticResource FilePathToBoolConverter}}"
+                Background="Transparent" 
+                Visibility="Visible" 
+                HorizontalAlignment="Right" 
+                VerticalAlignment="Center">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <StackPanel>
+                        <Image Name="image1" Height="32" Width="32" Source="../Resources/merge_32x32.png"  Visibility="Visible" />
+                        <Image Name="image2" Height="32" Width="32" Source="../Resources/mergeHover_32x32.png" Visibility="Collapsed" />
+                        <Image Name="image3" Height="32" Width="32" Source="../Resources/mergeDisabled_32x32.png" Visibility="Collapsed" />
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image2" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <DataTrigger Binding="{Binding Path=Settings.SettingsLocation, Converter={StaticResource FilePathToBoolConverter}}" Value="False">
+                            <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image2" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image3" Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
         <StackPanel Grid.Row="2"
                     Grid.Column="0" 
                     Orientation="Vertical">
@@ -100,7 +133,7 @@
                    Margin="10,10,0,0" 
                    FontSize="16" 
                    FontWeight="Bold"/>
-            <Label Content="Check Frequency:" 
+            <Label Content="Frequency:" 
                    Margin="10,10,0,0" 
                    FontSize="16" 
                    FontWeight="Bold"/>

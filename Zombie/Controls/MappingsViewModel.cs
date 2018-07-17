@@ -11,7 +11,7 @@ using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using Zombie.Utilities;
-using ZombieUtilities.Host;
+using ZombieUtilities.Client;
 
 #endregion
 

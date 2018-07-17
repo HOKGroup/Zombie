@@ -10,7 +10,7 @@ using System.Threading;
 using NLog;
 using RestSharp;
 using Zombie.Utilities;
-using ZombieUtilities.Host;
+using ZombieUtilities.Client;
 
 #endregion
 
@@ -62,7 +62,6 @@ namespace ZombieService.Runner
             if (!release.Assets.Any() || new Version(release.TagName).CompareTo(new Version(currentVersion)) <= 0)
             {
                 PublishGuiUpdate(Program.Settings, Status.UpToDate, "Your release is up to date!");
-                _logger.Info("Your release is up to date!");
                 return;
             }
 

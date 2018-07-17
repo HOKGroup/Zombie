@@ -20,9 +20,9 @@ namespace Zombie.Controls
         private static Logger _logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
-        /// 
+        /// Downloads latest pre-release from GitHub.
         /// </summary>
-        /// <param name="settings"></param>
+        /// <param name="settings">Zombie Settings.</param>
         public async void DownloadPreRelease(ZombieSettings settings)
         {
             var segments = ParseUrl(settings.Address);
@@ -64,9 +64,9 @@ namespace Zombie.Controls
         }
 
         /// <summary>
-        /// 
+        /// Commits Zombie Settings to GitHub overriding existing file.
         /// </summary>
-        /// <param name="settings"></param>
+        /// <param name="settings">Zombie Settings.</param>
         public async void PushSettingsToGitHub(ZombieSettings settings)
         {
             try
@@ -121,9 +121,9 @@ namespace Zombie.Controls
         }
 
         /// <summary>
-        /// 
+        /// Commits pre-release to GitHub converting it to Latest Release.
         /// </summary>
-        /// <param name="settings"></param>
+        /// <param name="settings">Zombie Settings.</param>
         public async void PushReleaseToGitHub(ZombieSettings settings)
         {
             try
@@ -156,10 +156,10 @@ namespace Zombie.Controls
         #region Utilities
 
         /// <summary>
-        /// 
+        /// Parses URL into its components parts. 
         /// </summary>
-        /// <param name="url"></param>
-        /// <returns></returns>
+        /// <param name="url">Base url to parse.</param>
+        /// <returns>Dictionary with owner, repo and file info.</returns>
         public static Dictionary<string, string> ParseUrl(string url)
         {
             var uri = new Uri(url);

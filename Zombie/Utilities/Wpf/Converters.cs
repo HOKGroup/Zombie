@@ -130,7 +130,7 @@ namespace Zombie.Utilities.Wpf
     }
 
     /// <summary>
-    /// 
+    /// Returns file source for Draggable image if False, otherwise DraggableDisabled source.
     /// </summary>
     public class BooleanToDragableSourceConverter : IValueConverter
     {
@@ -215,7 +215,7 @@ namespace Zombie.Utilities.Wpf
     }
 
     /// <summary>
-    /// 
+    /// Returns a Zombie Navy if True otherwise a Transparent Brush.
     /// </summary>
     public class BoolToBrushConverter : IValueConverter
     {
@@ -233,7 +233,7 @@ namespace Zombie.Utilities.Wpf
     }
 
     /// <summary>
-    /// 
+    /// Returns True if file path is a path to GitHub content. 
     /// </summary>
     public class FilePathToBoolConverter : IValueConverter
     {

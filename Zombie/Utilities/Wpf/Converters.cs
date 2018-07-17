@@ -130,7 +130,7 @@ namespace Zombie.Utilities.Wpf
     }
 
     /// <summary>
-    /// 
+    /// Returns file source for Draggable image if False, otherwise DraggableDisabled source.
     /// </summary>
     public class BooleanToDragableSourceConverter : IValueConverter
     {
@@ -206,6 +206,40 @@ namespace Zombie.Utilities.Wpf
             return count == 0
                 ? new SolidColorBrush(Color.FromRgb(154, 204, 121))
                 : new SolidColorBrush(Color.FromRgb(242, 73, 109));
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Returns a Zombie Navy if True otherwise a Transparent Brush.
+    /// </summary>
+    public class BoolToBrushConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return (bool) value
+                ? new SolidColorBrush(Color.FromRgb(43, 55, 79))
+                : new SolidColorBrush(Colors.Transparent);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    /// <summary>
+    /// Returns True if file path is a path to GitHub content. 
+    /// </summary>
+    public class FilePathToBoolConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return ((string) value).StartsWith("https://raw.githubusercontent.com", StringComparison.OrdinalIgnoreCase);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

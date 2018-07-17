@@ -6,7 +6,7 @@ using System.ServiceModel;
 using System.Threading;
 using NLog;
 using ZombieService.Host;
-using ZombieUtilities.Host;
+using ZombieUtilities.Client;
 
 #endregion
 
@@ -20,7 +20,7 @@ namespace ZombieService.Runner
         // since it's being executed from the same thread as the Service is running
         // on and would block the execution of the service causing a deadlock.
         [CallbackBehavior(UseSynchronizationContext = false)]
-        public class ZombieServiceCallback : IZombieServiceCallback
+        public class ZombieServiceCallback : IZombieContract
         {
             private SynchronizationContext _syncContext = AsyncOperationManager.SynchronizationContext;
             public event EventHandler<GuiUpdateEventArgs> ServiceCallbackEvent;
@@ -43,7 +43,7 @@ namespace ZombieService.Runner
 
         public void Broadcast(GuiUpdate update)
         {
-            var binding = ServiceUtils.CreateClientBinding(8001);
+            var binding = ServiceUtils.CreateClientBinding(ServiceUtils.FreeTcpPort());
             var endpoint = new EndpointAddress(new Uri("http://localhost:8000/ZombieService/Service.svc"));
             var context = new InstanceContext(new ZombieServiceCallback());
             var client = new ZombieServiceClient(context, binding, endpoint);

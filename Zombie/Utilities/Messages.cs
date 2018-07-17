@@ -18,9 +18,22 @@ namespace Zombie.Utilities
         public SettingsType Type { get; set; }
     }
 
+    public class UpdateStatus
+    {
+        public string Message { get; set; }
+    }
+
+    public enum ConnectionStatus
+    {
+        Success,
+        Failed,
+        Disconnecting
+    }
+
     public enum SettingsType
     {
         Local,
-        Remote
+        Remote,
+        GitHub
     }
 }

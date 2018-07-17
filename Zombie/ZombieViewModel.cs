@@ -11,7 +11,7 @@ using NLog;
 using Zombie.Controls;
 using Zombie.Utilities;
 using Zombie.Utilities.Wpf;
-using ZombieUtilities.Host;
+using ZombieUtilities.Client;
 using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 #endregion
@@ -23,6 +23,7 @@ namespace Zombie
         #region Properties
 
         private static Logger _logger = LogManager.GetCurrentClassLogger();
+        private ZombieModel Model { get; set; }
         private bool Cancel { get; set; } = true;
         private TextBlock Control { get; set; }
         public ObservableCollection<TabItem> TabItems { get; set; }
@@ -39,14 +40,15 @@ namespace Zombie
 
         #endregion
 
-        public ZombieViewModel(ZombieSettings settings)
+        public ZombieViewModel(ZombieSettings settings, ZombieModel model)
         {
             Settings = settings;
+            Model = model;
 
             WindowClosing = new RelayCommand(OnWindowClosing);
             WindowLoaded = new RelayCommand<Window>(OnWindowLoaded);
 
-            var gitHub = new TabItem { Content = new GitHubView { DataContext = new GitHubViewModel(Settings) }, Header = "GitHub" };
+            var gitHub = new TabItem { Content = new GitHubView { DataContext = new GitHubViewModel(Settings, model) }, Header = "GitHub" };
             var mappings = new TabItem { Content = new MappingsView { DataContext = new MappingsViewModel(Settings) }, Header = "Mappings" };
             var general = new TabItem { Content = new GeneralView { DataContext = new GeneralViewModel(Settings) }, Header = "General" };
             TabItems = new ObservableCollection<TabItem>
@@ -58,9 +60,15 @@ namespace Zombie
 
             Messenger.Default.Register<StoreSettings>(this, OnStoreSettings);
             Messenger.Default.Register<GuiUpdate>(this, OnGuiUpdate);
+            Messenger.Default.Register<UpdateStatus>(this, OnUpdateStatus);
         }
 
         #region Message Handlers
+
+        private void OnUpdateStatus(UpdateStatus obj)
+        {
+            Control?.Dispatcher.Invoke(() => { StatusBarManager.StatusLabel.Text = obj.Message; });
+        }
 
         /// <summary>
         /// This method handles all GUI updates coming from the ZombieService. Since we stored the
@@ -99,22 +107,26 @@ namespace Zombie
                 context.UpdateSettings();
             }
 
-            var dialog = new SaveFileDialog
+            if (obj.Type != SettingsType.GitHub)
             {
-                FileName = "ZombieSettings.json",
-                DefaultExt = ".json",
-                Filter = "JSON Files (.json)|*.json"
-            };
+                var dialog = new SaveFileDialog
+                {
+                    FileName = "ZombieSettings.json",
+                    DefaultExt = ".json",
+                    Filter = "JSON Files (.json)|*.json"
+                };
 
-            var result = dialog.ShowDialog();
-            if (result != true)
-            {
-                StatusBarManager.StatusLabel.Text = "Zombie Settings not saved!";
-                return;
+                var result = dialog.ShowDialog();
+                if (result != true)
+                {
+                    StatusBarManager.StatusLabel.Text = "Zombie Settings not saved!";
+                    return;
+                }
+
+                var filePath = dialog.FileName;
+                Settings.SettingsLocation = filePath;
             }
-
-            var filePath = dialog.FileName;
-            Settings.SettingsLocation = filePath;
+            
             switch (obj.Type)
             {  
                 case SettingsType.Local:
@@ -132,6 +144,9 @@ namespace Zombie
                             "Zombie Settings not saved! Make sure you have write access to chosen path.";
                         return;
                     }
+                    break;
+                case SettingsType.GitHub:
+                    Model.PushSettingsToGitHub(Settings);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -174,10 +189,6 @@ namespace Zombie
             // (Konrad) Store reference to UI Control. It will be needed when
             // settings status messages from a pool thread.
             Control = ((ZombieView) win).statusLabel;
-
-            if (App.ConnectionFailed)
-                StatusBarManager.StatusLabel.Text =
-                    "Failed to connect to ZombieService. Make sure it's alive and kicking!";
         }
 
         #endregion

@@ -9,13 +9,15 @@
              Loaded="GitHubView_OnLoaded"
              d:DesignHeight="450" d:DesignWidth="800">
     <UserControl.Resources>
-        <Style TargetType="TextBox">
+        <utilities:BoolToBrushConverter x:Key="BoolToBrushConverter"/>
+        <utilities:BooleanInverterConverter x:Key="BooleanInverterConverter"/>
+        <Style TargetType="TextBox" x:Key="TextBoxStyle">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsKeyboardFocused, RelativeSource={RelativeSource Self}}" Value="false">
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="TextBox">
-                                <Border BorderBrush="#2B374F" BorderThickness="1">
+                                <Border BorderBrush="{Binding IsPrereleaseMode, Converter={StaticResource BoolToBrushConverter}}" BorderThickness="1">
                                     <TextBlock Text="{TemplateBinding Text}"  TextTrimming="CharacterEllipsis" Padding="10,0,0,0"/>
                                 </Border>
                             </ControlTemplate>
@@ -44,10 +46,43 @@
                FontWeight="Bold" 
                Foreground="Gray" />
         <Button Grid.Row="1" Grid.Column="1" 
-                ToolTip="Update!"
+                ToolTip="Check for latest Release and update if available!"
                 Name="RefreshButton" 
                 Command="{Binding Update, Mode=OneWay}" 
                 Margin="0,0,10,0" 
+                Cursor="Hand" 
+                IsEnabled="{Binding IsPrereleaseMode, Converter={StaticResource BooleanInverterConverter}}"
+                Background="Transparent" 
+                Visibility="Visible" 
+                HorizontalAlignment="Right" 
+                VerticalAlignment="Center">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <StackPanel>
+                        <Image Name="image1" Height="32" Width="32" Source="../Resources/update_32x32.png"  Visibility="Visible" />
+                        <Image Name="image2" Height="32" Width="32" Source="../Resources/updateHover_32x32.png" Visibility="Collapsed" />
+                        <Image Name="image3" Height="32" Width="32" Source="../Resources/updateDisabled_32x32.png" Visibility="Collapsed" />
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image2" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <DataTrigger Binding="{Binding Path=IsPrereleaseMode}" Value="True">
+                            <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image2" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image3" Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+        <Button Name="PrereleaseButton" 
+                Grid.Row="1" 
+                Grid.Column="1" 
+                ToolTip="Download latest pre-release from GitHub!"
+                Command="{Binding DownloadPrerelease, Mode=OneWay}" 
+                Margin="0,0,52,0" 
                 Cursor="Hand" 
                 Background="Transparent" 
                 Visibility="Visible" 
@@ -56,14 +91,50 @@
             <Button.Template>
                 <ControlTemplate TargetType="Button">
                     <StackPanel>
-                        <Image Name="image1" Height="32" Width="32" Source="../Resources/refresh_32x32.png"  Visibility="Visible" />
-                        <Image Name="image2" Height="32" Width="32" Source="../Resources/refreshHover_32x32.png" Visibility="Collapsed" />
+                        <Image Name="image1" Height="32" Width="32" Source="../Resources/prerelease_32x32.png"  Visibility="Visible" />
+                        <Image Name="image2" Height="32" Width="32" Source="../Resources/prereleaseHover_32x32.png" Visibility="Collapsed" />
                     </StackPanel>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">
                             <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
                             <Setter TargetName="image2" Property="Visibility" Value="Visible" />
                         </Trigger>
+                        <DataTrigger Binding="{Binding Path=IsPrereleaseMode}" Value="True">
+                            <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image2" Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+        <Button Grid.Row="1" 
+                Grid.Column="1" 
+                ToolTip="Convert current pre-Release to Latest Release and commit to GitHub!"
+                Command="{Binding PushToGitHub, Mode=OneWay}" 
+                Margin="0,0,94,0" 
+                Cursor="Hand" 
+                IsEnabled="{Binding Path=IsPrereleaseMode}"
+                Background="Transparent" 
+                Visibility="Visible" 
+                HorizontalAlignment="Right" 
+                VerticalAlignment="Center">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <StackPanel>
+                        <Image Name="image1" Height="32" Width="32" Source="../Resources/merge_32x32.png"  Visibility="Visible" />
+                        <Image Name="image2" Height="32" Width="32" Source="../Resources/mergeHover_32x32.png" Visibility="Collapsed" />
+                        <Image Name="image3" Height="32" Width="32" Source="../Resources/mergeDisabled_32x32.png" Visibility="Collapsed" />
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="true">
+                            <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image2" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <DataTrigger Binding="{Binding Path=IsPrereleaseMode}" Value="False">
+                            <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image2" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image3" Property="Visibility" Value="Visible" />
+                        </DataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Button.Template>
@@ -116,20 +187,57 @@
                     </utilities:WatermarkService.Watermark>
                 </PasswordBox>
             </AdornerDecorator>
-            <Label Content="{Binding Settings.LatestRelease.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                   Margin="5,14,0,0" 
-                   FontSize="16"/>
-            <Label Content="{Binding Settings.LatestRelease.TagName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                   Margin="5,0,0,0" 
-                   FontSize="16"/>
+            <AdornerDecorator Margin="10,18,10,0">
+                <TextBox x:Name="ReleaseNameTextBox" 
+                         Padding="10,0,0,0" 
+                         IsEnabled="{Binding IsPrereleaseMode}"
+                         FontSize="16" 
+                         Style="{StaticResource TextBoxStyle}"
+                         Text="{Binding Settings.LatestRelease.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                    <utilities:WatermarkService.Watermark>
+                        <TextBlock FontSize="16">
+                            Name
+                        </TextBlock>
+                    </utilities:WatermarkService.Watermark>
+                    
+                </TextBox>
+            </AdornerDecorator>
+            <AdornerDecorator Margin="10,5,10,0">
+                <TextBox x:Name="TagNameTextBox" 
+                         Padding="10,0,0,0" 
+                         IsEnabled="{Binding IsPrereleaseMode}"
+                         FontSize="16" 
+                         Style="{StaticResource TextBoxStyle}"
+                         Text="{Binding Settings.LatestRelease.TagName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                    <utilities:WatermarkService.Watermark>
+                        <TextBlock FontSize="16">
+                            Tag Name
+                        </TextBlock>
+                    </utilities:WatermarkService.Watermark>
+                </TextBox>
+            </AdornerDecorator>
+            <AdornerDecorator Margin="10,5,10,0">
+                <TextBox x:Name="BodyTextBox" 
+                         Padding="10,0,0,0" 
+                         IsEnabled="{Binding IsPrereleaseMode}"
+                         TextWrapping="Wrap"
+                         MaxHeight="500"
+                         Style="{StaticResource TextBoxStyle}"
+                         AcceptsReturn="True"
+                         FontSize="16" 
+                         Text="{Binding Settings.LatestRelease.Body, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                    <utilities:WatermarkService.Watermark>
+                        <TextBlock FontSize="16">
+                            Body
+                        </TextBlock>
+                    </utilities:WatermarkService.Watermark>
+                </TextBox>
+            </AdornerDecorator>
             <Label Content="{Binding Settings.LatestRelease.PublishedAt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                   Margin="5,0,0,0" 
+                   Margin="15,0,0,0" 
                    FontSize="16"/>
             <Label Content="{Binding Settings.LatestRelease.Author.Login, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                   Margin="5,0,0,0" 
-                   FontSize="16"/>
-            <Label Content="{Binding Settings.LatestRelease.Body, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                   Margin="5,0,0,0" 
+                   Margin="15,0,0,0" 
                    FontSize="16"/>
         </StackPanel>
     </Grid>

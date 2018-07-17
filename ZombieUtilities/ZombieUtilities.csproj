@@ -57,15 +57,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Client\IZombieService.cs" />
     <Compile Include="FilePathUtils.cs" />
     <Compile Include="FileUtils.cs" />
     <Compile Include="FrequencyUtils.cs" />
     <Compile Include="GitHubUtils.cs" />
     <Compile Include="GitHubWrappers.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Host\GuiUpdate.cs" />
-    <Compile Include="Host\ServiceUtils.cs" />
-    <Compile Include="Host\ZombieServiceClient.cs" />
+    <Compile Include="Client\GuiUpdate.cs" />
+    <Compile Include="Client\ServiceUtils.cs" />
+    <Compile Include="Client\ZombieServiceClient.cs" />
     <Compile Include="RegistryUtils.cs" />
     <Compile Include="SettingsUtils.cs" />
     <Compile Include="StringExtensions.cs" />

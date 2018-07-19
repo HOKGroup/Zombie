@@ -7,7 +7,7 @@
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         mc:Ignorable="d"
         Icon="Resources/iconsZombie.ico"
-        Title="Zombie" Height="800" Width="850" ResizeMode="NoResize">
+        Title="{Binding Title}" Height="800" Width="850" ResizeMode="NoResize">
     <i:Interaction.Triggers>
         <i:EventTrigger EventName="Closing">
             <i:InvokeCommandAction Command="{Binding WindowClosing}" />
@@ -34,12 +34,12 @@
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="TabItem">
-                                <Grid Name="Panel">
+                                <Grid Name="Panel" Cursor="Hand">
                                     <Border Name="Border" BorderThickness="0,0,5,0" BorderBrush="#E6E3DB" CornerRadius="0">
                                         <ContentPresenter x:Name="ContentSite" 
                                                           VerticalAlignment="Center"
                                                           HorizontalAlignment="Left" 
-                                                          ContentSource="Header" 
+                                                          ContentSource="Header"
                                                           TextBlock.FontSize="16"
                                                           Margin="20,10,100,10"/>
                                     </Border>

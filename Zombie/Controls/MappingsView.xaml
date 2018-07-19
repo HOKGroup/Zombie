@@ -19,43 +19,56 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="80"/>
             <RowDefinition Height="48"/>
+            <RowDefinition Height="30"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
-        <Label Content="File Mappings"
+        <Label Content="File"
                HorizontalAlignment="Left" 
                Margin="10,10,0,0" 
                VerticalAlignment="Top" 
                FontSize="40" 
                FontWeight="Bold" 
                Foreground="Gray" />
-        <Label Grid.Row="1" 
+        <Label Content="Mappings"
+               Grid.Row="0" 
+               Grid.RowSpan="2" 
+               Grid.Column="0"
+               HorizontalAlignment="Left" 
+               Margin="10,50,0,0" 
+               VerticalAlignment="Top" 
+               FontSize="40" 
+               FontWeight="Bold" 
+               Foreground="Gray" />
+        <Label Grid.Row="2" 
                Grid.Column="0" 
                FontSize="18" 
                Margin="10,0,50,0" 
+               Padding="0"
                FontWeight="Bold"
-               VerticalAlignment="Center" 
+               VerticalAlignment="Top" 
                Content="Source Files:"/>
         <Label Grid.Row="1" 
                Grid.Column="0" 
                FontSize="24" 
                FontWeight="Bold"
                Foreground="{Binding SourceLocations[0].AssetCount, Converter={StaticResource CountToBrushConverter}}"
-               Margin="0,0,10,0"
+               Margin="0,19,10,19"
                HorizontalAlignment="Right"
                VerticalAlignment="Center" 
                Content="{Binding SourceLocations[0].AssetCount, UpdateSourceTrigger=PropertyChanged}"/>
-        <Label Grid.Row="1"
+        <Label Grid.Row="2"
                Grid.Column="1" 
                FontSize="18" 
+               Padding="0"
                FontWeight="Bold"
                Margin="10,0,60,0" 
-               VerticalAlignment="Center" 
+               VerticalAlignment="Top" 
                Content="Target Files:"/>
         <Button Grid.Row="1" Grid.Column="1" 
                 ToolTip="Add another folder!"
                 Name="CheckAllButton" 
                 Command="{Binding AddLocation, Mode=OneWay}" 
-                Margin="0,0,10,0" 
+                Margin="0,8,10,8" 
                 Cursor="Hand" 
                 Background="Transparent" 
                 Visibility="Visible" 
@@ -78,8 +91,8 @@
         </Button>
         <ScrollViewer VerticalScrollBarVisibility="Auto" 
                       Grid.Column="0" 
-                      Grid.Row="2"
-                      Margin="10">
+                      Grid.Row="3"
+                      Margin="10,0.667,10,10">
             <ItemsControl ItemsSource="{Binding SourceLocations}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -95,8 +108,8 @@
         </ScrollViewer>
         <ScrollViewer VerticalScrollBarVisibility="Auto" 
                       Grid.Column="1" 
-                      Grid.Row="2"
-                      Margin="10">
+                      Grid.Row="3"
+                      Margin="10,0.667,10,10">
             <ItemsControl ItemsSource="{Binding Locations}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>

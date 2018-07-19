@@ -37,9 +37,19 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <Label Grid.ColumnSpan="2" 
-               Content="General Settings"
+               Content="General"
                HorizontalAlignment="Left" 
                Margin="10,10,0,0" 
+               VerticalAlignment="Top" 
+               FontSize="40" 
+               FontWeight="Bold" 
+               Foreground="Gray" />
+        <Label Content="Settings"
+               Grid.Row="0" 
+               Grid.RowSpan="2" 
+               Grid.Column="0"
+               HorizontalAlignment="Left" 
+               Margin="10,50,0,0" 
                VerticalAlignment="Top" 
                FontSize="40" 
                FontWeight="Bold" 

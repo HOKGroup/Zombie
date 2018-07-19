@@ -30,12 +30,14 @@ namespace Zombie
         public RelayCommand WindowClosing { get; set; }
         public RelayCommand<Window> WindowLoaded { get; set; }
         public bool ConnectionFailed { get; set; }
+        public string Title { get; set; }
 
         #endregion
 
         public ZombieViewModel(ZombieModel model)
         {
             Model = model;
+            Title = "Zombie v." + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
             WindowClosing = new RelayCommand(OnWindowClosing);
             WindowLoaded = new RelayCommand<Window>(OnWindowLoaded);

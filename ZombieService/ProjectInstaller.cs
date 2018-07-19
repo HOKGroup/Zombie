@@ -9,6 +9,9 @@ namespace ZombieService
         public ProjectInstaller()
         {
             InitializeComponent();
+
+            serviceInstaller1.StartType = System.ServiceProcess.ServiceStartMode.Automatic;
+            serviceInstaller1.DelayedAutoStart = true;
         }
     }
 }

@@ -83,6 +83,12 @@ namespace Zombie.Controls
                 try
                 {
                     Model.Settings = App.Client.GetSettings();
+
+                    Messenger.Default.Send(new PrereleaseDownloaded
+                    {
+                        Status = PrereleaseStatus.Failed,
+                        Settings = Model.Settings
+                    });
                 }
                 catch (Exception e)
                 {

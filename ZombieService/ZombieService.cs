@@ -32,7 +32,6 @@ namespace ZombieService
 #if DEBUG
             System.Diagnostics.Debugger.Launch();
 #endif
-            InitLogging(args);
 
             // (Konrad) Set host, settings and runner if they don't exist
             Program.Host = HostUtils.CreateHost(Program.Host);
@@ -46,8 +45,6 @@ namespace ZombieService
                 dwWaitHint = 100000
             };
             SetServiceStatus(ServiceHandle, ref serviceStatus);
-
-            eventLog1.WriteEntry("In OnStart");
 
             // Update the service state to Running.  
             serviceStatus.dwCurrentState = ServiceState.SERVICE_RUNNING;
@@ -66,32 +63,9 @@ namespace ZombieService
             };
             SetServiceStatus(ServiceHandle, ref serviceStatus);
 
-            eventLog1.WriteEntry("In onStop.");
-
             // Update the service state to Running.  
             serviceStatus.dwCurrentState = ServiceState.SERVICE_RUNNING;
             SetServiceStatus(ServiceHandle, ref serviceStatus);
-        }
-
-        private void InitLogging(IReadOnlyList<string> args)
-        {
-            var eventSourceName = "MySource";
-            var logName = "MyNewLog";
-            if (args.Any())
-            {
-                eventSourceName = args[0];
-            }
-            if (args.Count() > 1)
-            {
-                logName = args[1];
-            }
-            eventLog1 = new System.Diagnostics.EventLog();
-            if (!System.Diagnostics.EventLog.SourceExists(eventSourceName))
-            {
-                System.Diagnostics.EventLog.CreateEventSource(eventSourceName, logName);
-            }
-            eventLog1.Source = eventSourceName;
-            eventLog1.Log = logName;
         }
     }
 

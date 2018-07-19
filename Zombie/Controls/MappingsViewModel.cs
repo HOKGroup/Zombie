@@ -11,6 +11,7 @@ using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using Zombie.Utilities;
+using Zombie.Utilities.Wpf;
 using ZombieUtilities.Client;
 
 #endregion
@@ -53,10 +54,30 @@ namespace Zombie.Controls
 
             Messenger.Default.Register<LocationRemoved>(this, OnLocationRemoved);
             Messenger.Default.Register<GuiUpdate>(this, OnGuiUpdate);
+            Messenger.Default.Register<PrereleaseDownloaded>(this, OnPrereleaseDownloaded);
 
             // (Konrad) Populate UI with stored settings
             PopulateSourceFromSettings(Model.Settings);
             if (Model.Settings.DestinationAssets.Any()) PopulateDestinationFromSettings(Model.Settings);
+        }
+
+        private void OnPrereleaseDownloaded(PrereleaseDownloaded obj)
+        {
+            switch (obj.Status)
+            {
+                case PrereleaseStatus.Found:
+                    Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() => {
+                        ProcessSucceeded(obj.Settings);
+                    }));
+                    break;
+                case PrereleaseStatus.Failed:
+                    Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() => {
+                        ProcessUpToDate(obj.Settings);
+                    }));
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         #region Message Handlers

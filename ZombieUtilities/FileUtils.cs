@@ -76,8 +76,8 @@ namespace Zombie.Utilities
         {
             if (!Directory.Exists(path))
             {
-                _logger.Error("Directory path doesn't exists.");
-                return false;
+                _logger.Info("Directory path doesn't exists: " + path);
+                return true;
             }
             try
             {

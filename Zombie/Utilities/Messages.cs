@@ -23,6 +23,18 @@ namespace Zombie.Utilities
         public string Message { get; set; }
     }
 
+    public class PrereleaseDownloaded
+    {
+        public PrereleaseStatus Status { get; set; }
+        public ZombieSettings Settings { get; set; }
+    }
+
+    public enum PrereleaseStatus
+    {
+        Found,
+        Failed
+    }
+
     public enum ConnectionStatus
     {
         Success,

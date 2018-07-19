@@ -5,12 +5,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using NLog;
-using RestSharp;
+using Octokit;
 using Zombie.Utilities;
 using ZombieUtilities.Client;
+using FileMode = System.IO.FileMode;
 
 #endregion
 
@@ -19,13 +19,12 @@ namespace ZombieService.Runner
     public static class RunnerUtils
     {
         private static Logger _logger = LogManager.GetCurrentClassLogger();
-        private const string BaseUrl = "https://api.github.com";
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="settings"></param>
-        public static void GetLatestRelease(ZombieSettings settings)
+        public static async void GetLatestRelease(ZombieSettings settings)
         {
             if (string.IsNullOrEmpty(settings?.AccessToken) || string.IsNullOrEmpty(settings.Address))
             {
@@ -33,31 +32,12 @@ namespace ZombieService.Runner
                 return;
             }
 
-            // (Konrad) Apparently it's possible that new Windows updates change the standard 
-            // SSL protocol to SSL3. RestSharp uses whatever current one is while GitHub server 
-            // is not ready for it yet, so we have to use TLS1.2 explicitly.
-            ServicePointManager.Expect100Continue = true;
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            var segments = GitHubUtils.ParseUrl(settings.Address);
+            var client = new GitHubClient(new ProductHeaderValue("Zombie"));
+            var tokenAuth = new Credentials(settings.AccessToken);
+            client.Credentials = tokenAuth;
 
-            var client = new RestClient(BaseUrl);
-            var repoAddress = settings.Address.Replace("https://github.com", "");
-            var requestString = "/repos" + repoAddress + "/releases/latest";
-            var request = new RestRequest(requestString, Method.GET)
-            {
-                OnBeforeDeserialization = x => { x.ContentType = "application/json"; }
-            };
-            request.AddHeader("Content-type", "application/json");
-            request.AddHeader("Authorization", "Token " + settings.AccessToken);
-            request.RequestFormat = DataFormat.Json;
-
-            var response = client.Execute<ReleaseObject>(request);
-            if (response.StatusCode != HttpStatusCode.OK)
-            {
-                _logger.Error("Connection failed!");
-                return;
-            }
-
-            var release = response.Data;
+            var release = await client.Repository.Release.GetLatest(segments["owner"], segments["repo"]);
             var currentVersion = Properties.Settings.Default["CurrentVersion"].ToString();
             if (!release.Assets.Any() || new Version(release.TagName).CompareTo(new Version(currentVersion)) <= 0)
             {
@@ -107,7 +87,7 @@ namespace ZombieService.Runner
                 {
                     if (asset.IsArchive())
                     {
-                        if (LockAllContents(settings, asset, loc.DirectoryPath, out var zippedStreams))
+                        if (LockAllContents(settings, asset, FilePathUtils.CreateUserSpecificPath(loc.DirectoryPath), out var zippedStreams))
                         {
                             fileStreams = fileStreams.Concat(zippedStreams).GroupBy(x => x.Key)
                                 .ToDictionary(x => x.Key, x => x.First().Value);
@@ -133,30 +113,62 @@ namespace ZombieService.Runner
                 }
             }
 
-            // (Konrad) Move assets to target locations
-            foreach (var loc in newSettings.DestinationAssets)
+            // (Konrad) Move assets to target locations. 
+            // We sort the locations list so that Trash (3) is first.
+            // This should make sure that we delete first, then move.
+            // Could be important with Zipped contents and overriding.
+            foreach (var loc in newSettings.DestinationAssets.OrderByDescending(x => (int)x.LocationType))
             {
-                foreach (var asset in loc.Assets)
+                if (loc.LocationType == LocationType.Trash)
                 {
-                    if (asset.IsArchive())
+                    // (Konrad) Let's remove these files.
+                    foreach (var asset in loc.Assets)
                     {
-                        if (ExtractToDirectory(asset, loc.DirectoryPath, fileStreams)) continue;
+                        if (asset.IsArchive())
+                        {
+                            if(DeleteZipContents(asset, FilePathUtils.CreateUserSpecificPath(loc.DirectoryPath), fileStreams)) continue;
 
-                        _logger.Fatal("Could not override existing ZIP contents!");
+                            _logger.Error("Could not override existing ZIP contents!");
+                            return;
+                        }
+
+                        var to = Path.Combine(FilePathUtils.CreateUserSpecificPath(loc.DirectoryPath), asset.Name);
+
+                        // make sure that file is not locked
+                        var stream = fileStreams[to];
+                        stream?.Close();
+
+                        if (FileUtils.DeleteFile(to)) continue;
+
+                        _logger.Error("Could not delete existing file!");
                         return;
                     }
+                }
+                else
+                {
+                    // (Konrad) Let's copy these files.
+                    foreach (var asset in loc.Assets)
+                    {
+                        if (asset.IsArchive())
+                        {
+                            if (ExtractToDirectory(asset, FilePathUtils.CreateUserSpecificPath(loc.DirectoryPath), fileStreams)) continue;
 
-                    var from = Path.Combine(dir, asset.Name);
-                    var to = Path.Combine(FilePathUtils.CreateUserSpecificPath(loc.DirectoryPath), asset.Name);
+                            _logger.Error("Could not override existing ZIP contents!");
+                            return;
+                        }
 
-                    // make sure that file is not locked
-                    var stream = fileStreams[to];
-                    stream?.Close();
+                        var from = Path.Combine(dir, asset.Name);
+                        var to = Path.Combine(FilePathUtils.CreateUserSpecificPath(loc.DirectoryPath), asset.Name);
 
-                    if (FileUtils.Copy(@from, @to)) continue;
+                        // make sure that file is not locked
+                        var stream = fileStreams[to];
+                        stream?.Close();
 
-                    _logger.Fatal("Could not override existing file!");
-                    return;
+                        if (FileUtils.Copy(from, to)) continue;
+
+                        _logger.Error("Could not override existing file!");
+                        return;
+                    }
                 }
             }
 
@@ -170,7 +182,7 @@ namespace ZombieService.Runner
             Properties.Settings.Default.CurrentVersion = release.TagName;
             Properties.Settings.Default.Save();
 
-            newSettings.LatestRelease = release;
+            newSettings.LatestRelease = new ReleaseObject(release);
             if (!newSettings.StoreSettings)
             {
                 newSettings.AccessToken = Program.Settings.AccessToken;
@@ -232,7 +244,7 @@ namespace ZombieService.Runner
                 {
                     foreach (var file in zip.Entries)
                     {
-                        var completeFileName = Path.Combine(FilePathUtils.CreateUserSpecificPath(destinationDir), file.FullName);
+                        var completeFileName = Path.Combine(destinationDir, file.FullName);
                         if (file.Name == string.Empty || !Directory.Exists(Path.GetDirectoryName(completeFileName)))
                             continue;
 
@@ -269,7 +281,7 @@ namespace ZombieService.Runner
                 {
                     foreach (var file in zip.Entries)
                     {
-                        var completeFileName = Path.Combine(FilePathUtils.CreateUserSpecificPath(destinationDir), file.FullName);
+                        var completeFileName = Path.Combine(destinationDir, file.FullName);
 
                         if (file.Name == string.Empty) continue; // dir entry
 
@@ -285,6 +297,62 @@ namespace ZombieService.Runner
                         }
 
                         file.ExtractToFile(completeFileName, true);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Fatal(e.Message);
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="asset"></param>
+        /// <param name="destinationDir"></param>
+        /// <param name="streams"></param>
+        /// <returns></returns>
+        private static bool DeleteZipContents(AssetObject asset, string destinationDir, IReadOnlyDictionary<string, FileStream> streams)
+        {
+            var dir = FileUtils.GetZombieDownloadsDirectory();
+            var filePath = Path.Combine(dir, asset.Name);
+            if (!File.Exists(filePath)) return false;
+
+            try
+            {
+                using (var zip = ZipFile.Open(filePath, ZipArchiveMode.Read))
+                {
+                    var folders = new List<string>();
+                    foreach (var file in zip.Entries)
+                    {
+                        var completeFileName = Path.Combine(destinationDir, file.FullName);
+
+                        if (file.Name == string.Empty)
+                        {
+                            folders.Add(completeFileName);
+                        }
+
+                        // make sure that file is not locked
+                        var stream = streams.ContainsKey(completeFileName) ? streams[completeFileName] : null;
+                        stream?.Close();
+
+                        if (FileUtils.DeleteFile(completeFileName)) continue;
+
+                        _logger.Error("Failed to delete one of the Zipped files!");
+                        return false;
+                    }
+
+                    // (Konrad) By now all files inside of the folders should be gone. 
+                    foreach (var f in folders)
+                    {
+                        if (FileUtils.DeleteDirectory(f)) continue;
+
+                        _logger.Error("Failed to delete one of the Zipped folders!");
+                        return false;
                     }
                 }
             }

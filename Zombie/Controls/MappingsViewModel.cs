@@ -21,14 +21,8 @@ namespace Zombie.Controls
     {
         #region Properties
 
+        public ZombieModel Model { get; set; }
         public RelayCommand AddLocation { get; set; }
-
-        private ZombieSettings _settings;
-        public ZombieSettings Settings
-        {
-            get { return _settings; }
-            set { _settings = value; RaisePropertyChanged(() => Settings); }
-        }
 
         private readonly object _sourceLock = new object();
         private ObservableCollection<LocationsViewModel> _sourceLocations = new ObservableCollection<LocationsViewModel>();
@@ -48,9 +42,9 @@ namespace Zombie.Controls
 
         #endregion
 
-        public MappingsViewModel(ZombieSettings settings)
+        public MappingsViewModel(ZombieModel model)
         {
-            Settings = settings;
+            Model = model;
 
             BindingOperations.EnableCollectionSynchronization(_sourceLocations, _sourceLock);
             BindingOperations.EnableCollectionSynchronization(_locations, _lock);
@@ -61,8 +55,8 @@ namespace Zombie.Controls
             Messenger.Default.Register<GuiUpdate>(this, OnGuiUpdate);
 
             // (Konrad) Populate UI with stored settings
-            PopulateSourceFromSettings(settings);
-            if (settings.DestinationAssets.Any()) PopulateDestinationFromSettings(settings);
+            PopulateSourceFromSettings(Model.Settings);
+            if (Model.Settings.DestinationAssets.Any()) PopulateDestinationFromSettings(Model.Settings);
         }
 
         #region Message Handlers
@@ -74,33 +68,43 @@ namespace Zombie.Controls
                 case Status.Failed:
                     return;
                 case Status.Succeeded:
-                    ProcessSucceeded(obj.Settings);
+                    Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() => {
+                        ProcessSucceeded(obj.Settings);
+                    }));
                     return;
                 case Status.UpToDate:
-                    ProcessUpToDate(obj.Settings);
+                    Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() => {
+                        ProcessUpToDate(obj.Settings);
+                    }));
                     return;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="settings"></param>
         private void ProcessUpToDate(ZombieSettings settings)
         {
-            Application.Current.Dispatcher.BeginInvoke( DispatcherPriority.Background, new Action(() => {
-                Locations.Clear();
-                SourceLocations.Clear();
+            Locations.Clear();
+            SourceLocations.Clear();
 
-                Settings = settings;
+            Model.Settings = settings;
 
-                // (Konrad) Populate UI with stored settings
-                PopulateSourceFromSettings(settings);
-                if (settings.DestinationAssets.Any()) PopulateDestinationFromSettings(settings);
-            }));
+            // (Konrad) Populate UI with stored settings
+            PopulateSourceFromSettings(settings);
+            if (settings.DestinationAssets.Any()) PopulateDestinationFromSettings(settings);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="settings"></param>
         private void ProcessSucceeded(ZombieSettings settings)
         {
-            Settings = settings;
+            Model.Settings = settings;
 
             // (Konrad) Get all allocated assets. They would be allocated if they were
             // previously deserialized from Settings, or set on previous cycle.
@@ -112,6 +116,8 @@ namespace Zombie.Controls
                     allocated.Add(a.Asset);
                 }
             }
+
+            Locations = Locations.Where(x => x.LocationObject.LocationType != LocationType.Trash).ToObservableCollection();
             foreach (var l in Locations)
             {
                 foreach (var a in l.Assets)
@@ -135,9 +141,39 @@ namespace Zombie.Controls
             }
 
             // (Konrad) Whatever is left in allocated needs to be deleted.
+            var trashLocations = new ObservableCollection<LocationsViewModel>();
             foreach (var l in Locations)
             {
-                l.Assets = l.Assets.Where(x => !allocated.Contains(x.Asset)).ToObservableCollection();
+                var remain = new ObservableCollection<AssetViewModel>();
+                var trashLoc = new LocationsViewModel(new Location
+                {
+                    LocationType = LocationType.Trash,
+                    DirectoryPath = l.LocationObject.DirectoryPath
+                }, false);
+
+                foreach (var avm in l.Assets)
+                {
+                    if (!allocated.Contains(avm.Asset))
+                    {
+                        remain.Add(avm);
+                    }
+                    else
+                    {
+                        if (trashLoc.Assets.Contains(avm)) continue;
+
+                        avm.IsPlaceholder = true;
+                        trashLoc.Assets.Add(avm);
+                    }
+                }
+
+                l.Assets = remain;
+                trashLocations.Add(trashLoc);
+            }
+
+            // (Konrad) Let's put these deleted assets into new deleted locations
+            foreach (var lvm in trashLocations)
+            {
+                Locations.Add(lvm);
             }
 
             // (Konrad) If any location is now empty let's remove it.
@@ -152,8 +188,7 @@ namespace Zombie.Controls
 
                 var loc = new LocationsViewModel(new Location
                 {
-                    IsSourceLocation = true,
-                    MaxHeight = 557
+                    LocationType = LocationType.Source
                 }, !added.Any());
 
                 foreach (var asset in added)
@@ -209,7 +244,11 @@ namespace Zombie.Controls
                 var newLocation = new LocationsViewModel(loc);
                 var assets =
                     new ObservableCollection<AssetViewModel>(loc.Assets.Select(x =>
-                        new AssetViewModel(x) { Parent = newLocation }));
+                        new AssetViewModel(x)
+                        {
+                            Parent = newLocation,
+                            IsPlaceholder = loc.LocationType == LocationType.Trash
+                        }));
                 newLocation.Assets = assets;
 
                 Locations.Add(newLocation);
@@ -224,8 +263,7 @@ namespace Zombie.Controls
         {
             var loc = new LocationsViewModel(new Location
             {
-                IsSourceLocation = true,
-                MaxHeight = 557
+                LocationType = LocationType.Source
             }, !settings.SourceAssets.Any());
 
             foreach (var asset in settings.SourceAssets)
@@ -253,21 +291,21 @@ namespace Zombie.Controls
                 sourceAssets.AddRange(l.Assets.Where(x => !x.IsPlaceholder).Select(a => a.Asset));
             }
 
-            Settings.SourceAssets = sourceAssets;
+            Model.Settings.SourceAssets = sourceAssets;
 
             var locations = new List<Location>();
             foreach (var l in Locations)
             {
+                // (Konrad) We can skip placeholders but only if they are not trash
                 locations.Add(new Location
                 {
-                    IsSourceLocation = l.LocationObject.IsSourceLocation,
-                    MaxHeight = l.LocationObject.MaxHeight,
+                    LocationType = l.LocationObject.LocationType,
                     DirectoryPath = l.LocationObject.DirectoryPath,
-                    Assets = l.Assets.Where(x => !x.IsPlaceholder).Select(x => x.Asset).ToList()
+                    Assets = l.Assets.Where(x => !(x.IsPlaceholder && l.LocationObject.LocationType != LocationType.Trash)).Select(x => x.Asset).ToList()
                 });
             }
 
-            Settings.DestinationAssets = locations;
+            Model.Settings.DestinationAssets = locations;
         }
 
         #endregion

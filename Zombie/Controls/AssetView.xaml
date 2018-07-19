@@ -77,12 +77,18 @@
                     <StackPanel>
                         <Image Name="image1" Height="18" Width="18" Source="../Resources/preview_32x32.png"  Visibility="Visible" />
                         <Image Name="image2" Height="18" Width="18" Source="../Resources/previewHover_32x32.png" Visibility="Collapsed" />
+                        <Image Name="image3" Height="18" Width="18" Source="../Resources/previewDisabled_32x32.png" Visibility="Collapsed" />
                     </StackPanel>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="true">
                             <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
                             <Setter TargetName="image2" Property="Visibility" Value="Visible" />
                         </Trigger>
+                        <DataTrigger Binding="{Binding Path=IsPlaceholder}" Value="True">
+                            <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image2" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="image3" Property="Visibility" Value="Visible" />
+                        </DataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Button.Template>

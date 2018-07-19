@@ -2,12 +2,32 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using Newtonsoft.Json;
+using Octokit;
 
 namespace Zombie.Utilities
 {
     public class ReleaseObject : INotifyPropertyChanged
     {
+        [JsonConstructor]
+        public ReleaseObject()
+        {
+
+        }
+
+        public ReleaseObject(Release r)
+        {
+            Id = r.Id;
+            TagName = r.TagName;
+            Name = r.Name;
+            Body = r.Body;
+            Prerelease = r.Prerelease;
+            PublishedAt = r.PublishedAt.Value.LocalDateTime;
+            Author = new AuthorObject(r.Author);
+            Assets = r.Assets.Select(x => new AssetObject(x)).ToList();
+        }
+
         private int _id;
         [JsonProperty("id")]
         public int Id
@@ -76,12 +96,34 @@ namespace Zombie.Utilities
 
     public class AuthorObject
     {
+        [JsonConstructor]
+        public AuthorObject()
+        {
+        }
+
+        public AuthorObject(Author a)
+        {
+            Login = a.Login;
+        }
+
         [JsonProperty("login")]
         public string Login { get; set; }
     }
 
     public class AssetObject
     {
+        [JsonConstructor]
+        public AssetObject()
+        {
+        }
+
+        public AssetObject(ReleaseAsset a)
+        {
+            Id = a.Id;
+            Name = a.Name;
+            Url = a.Url;
+        }
+
         [JsonProperty("id")]
         public int Id { get; set; }
 

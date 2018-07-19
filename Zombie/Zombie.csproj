@@ -307,6 +307,18 @@
     <Resource Include="Resources\saveRemoteHover_32x32.png" />
     <Resource Include="Resources\saveRemote_32x32.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\delete_32x32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\exeDisabled_32x32.png" />
+    <Resource Include="Resources\imageDisabled_32x32.png" />
+    <Resource Include="Resources\msiDisabled_32x32.png" />
+    <Resource Include="Resources\zipDisabled_32x32.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\unknownDisabled_32x32.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>if exist "$(TargetPath).locked" del "$(TargetPath).locked"

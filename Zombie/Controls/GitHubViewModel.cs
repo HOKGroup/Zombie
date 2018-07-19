@@ -7,7 +7,6 @@ using GalaSoft.MvvmLight.Messaging;
 using NLog;
 using Zombie.Utilities;
 using Zombie.Utilities.Wpf;
-using ZombieUtilities.Client;
 
 #endregion
 
@@ -18,7 +17,7 @@ namespace Zombie.Controls
         #region Properties
 
         private static Logger _logger = LogManager.GetCurrentClassLogger();
-        private ZombieModel Model { get; set; }
+        public ZombieModel Model { get; set; }
         public RelayCommand Update { get; set; }
         public RelayCommand DownloadPrerelease { get; set; }
         public RelayCommand PushToGitHub { get; set; }
@@ -30,40 +29,35 @@ namespace Zombie.Controls
             set { _isPrereleaseMode = value; RaisePropertyChanged(() => IsPrereleaseMode); }
         }
 
-        private ZombieSettings _settings;
-        public ZombieSettings Settings
-        {
-            get { return _settings; }
-            set { _settings = value; RaisePropertyChanged(() => Settings); }
-        }
-
         #endregion
 
-        public GitHubViewModel(ZombieSettings settings, ZombieModel model)
+        public GitHubViewModel(ZombieModel model)
         {
-            Settings = settings;
             Model = model;
 
             Update = new RelayCommand(OnUpdate);
             DownloadPrerelease = new RelayCommand(OnDownloadPrerelease);
             PushToGitHub = new RelayCommand(OnPushToGitHub);
 
-            Messenger.Default.Register<GuiUpdate>(this, OnGuiUpdate);
+            Messenger.Default.Register<PrereleaseDownloaded>(this, OnPrereleaseDownloaded);
         }
 
-        #region Message Handlers
+        #region MessageHandlers
 
-        private void OnGuiUpdate(GuiUpdate obj)
+        private void OnPrereleaseDownloaded(PrereleaseDownloaded obj)
         {
             switch (obj.Status)
             {
-                case Status.Failed:
+                case PrereleaseStatus.Found:
+                    StatusBarManager.StatusLabel.Text = "Entered Pre-Release Mode. Live updates from ZombieService will be aborted.";
+                    Model.Settings = obj.Settings;
+                    App.StopUpdates = true;
+                    IsPrereleaseMode = !IsPrereleaseMode;
                     break;
-                case Status.Succeeded:
-                    Settings = obj.Settings;
-                    break;
-                case Status.UpToDate:
-                    Settings = obj.Settings;
+                case PrereleaseStatus.Failed:
+                    StatusBarManager.StatusLabel.Text = "Could not find any Pre-Releases!";
+                    App.StopUpdates = false;
+                    IsPrereleaseMode = false;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -76,7 +70,7 @@ namespace Zombie.Controls
 
         private void OnPushToGitHub()
         {
-            Model.PushReleaseToGitHub(Settings);
+            Model.PushReleaseToGitHub(Model.Settings);
         }
 
         private void OnDownloadPrerelease()
@@ -86,18 +80,20 @@ namespace Zombie.Controls
                 // (Konrad) If we are already in pre-release mode let's disable it.
                 DisablePreReleaseMode();
 
-                // (Konrad) Trigger manual update so that UI updates to whatever current settings are.
-                OnUpdate();
+                try
+                {
+                    Model.Settings = App.Client.GetSettings();
+                }
+                catch (Exception e)
+                {
+                    _logger.Fatal(e.Message);
+                    StatusBarManager.StatusLabel.Text = "Failed to retrieve Zombie Settings from ZombieService!";
+                }
 
                 return;
             }
 
-            // (Konrad) Enable pre-release mode. 
-            StatusBarManager.StatusLabel.Text = "Entered Pre-Release Mode. Live updates from ZombieService will be aborted.";
-            App.StopUpdates = true;
-            IsPrereleaseMode = !IsPrereleaseMode;
-
-            Model.DownloadPreRelease(Settings);
+            Model.DownloadPreRelease(Model.Settings);
         }
 
         private void OnUpdate()

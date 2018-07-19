@@ -164,7 +164,7 @@
                          BorderThickness="1" 
                          BorderBrush="#2B374F"
                          FontSize="16" 
-                         Text="{Binding Settings.Address, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                         Text="{Binding Model.Settings.Address, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                     <utilities:WatermarkService.Watermark>
                         <TextBlock FontSize="16">
                             https://github.com/HOKGroup/HOK-Revit-Addins
@@ -193,7 +193,7 @@
                          IsEnabled="{Binding IsPrereleaseMode}"
                          FontSize="16" 
                          Style="{StaticResource TextBoxStyle}"
-                         Text="{Binding Settings.LatestRelease.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                         Text="{Binding Model.Settings.LatestRelease.Name, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                     <utilities:WatermarkService.Watermark>
                         <TextBlock FontSize="16">
                             Name
@@ -208,7 +208,7 @@
                          IsEnabled="{Binding IsPrereleaseMode}"
                          FontSize="16" 
                          Style="{StaticResource TextBoxStyle}"
-                         Text="{Binding Settings.LatestRelease.TagName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                         Text="{Binding Model.Settings.LatestRelease.TagName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                     <utilities:WatermarkService.Watermark>
                         <TextBlock FontSize="16">
                             Tag Name
@@ -225,7 +225,7 @@
                          Style="{StaticResource TextBoxStyle}"
                          AcceptsReturn="True"
                          FontSize="16" 
-                         Text="{Binding Settings.LatestRelease.Body, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                         Text="{Binding Model.Settings.LatestRelease.Body, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                     <utilities:WatermarkService.Watermark>
                         <TextBlock FontSize="16">
                             Body
@@ -233,10 +233,10 @@
                     </utilities:WatermarkService.Watermark>
                 </TextBox>
             </AdornerDecorator>
-            <Label Content="{Binding Settings.LatestRelease.PublishedAt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            <Label Content="{Binding Model.Settings.LatestRelease.PublishedAt, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                    Margin="15,0,0,0" 
                    FontSize="16"/>
-            <Label Content="{Binding Settings.LatestRelease.Author.Login, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+            <Label Content="{Binding Model.Settings.LatestRelease.Author.Login, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                    Margin="15,0,0,0" 
                    FontSize="16"/>
         </StackPanel>

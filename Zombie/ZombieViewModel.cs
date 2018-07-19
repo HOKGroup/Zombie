@@ -31,26 +31,18 @@ namespace Zombie
         public RelayCommand<Window> WindowLoaded { get; set; }
         public bool ConnectionFailed { get; set; }
 
-        private ZombieSettings _settings;
-        public ZombieSettings Settings
-        {
-            get { return _settings; }
-            set { _settings = value; RaisePropertyChanged(() => Settings); }
-        }
-
         #endregion
 
-        public ZombieViewModel(ZombieSettings settings, ZombieModel model)
+        public ZombieViewModel(ZombieModel model)
         {
-            Settings = settings;
             Model = model;
 
             WindowClosing = new RelayCommand(OnWindowClosing);
             WindowLoaded = new RelayCommand<Window>(OnWindowLoaded);
 
-            var gitHub = new TabItem { Content = new GitHubView { DataContext = new GitHubViewModel(Settings, model) }, Header = "GitHub" };
-            var mappings = new TabItem { Content = new MappingsView { DataContext = new MappingsViewModel(Settings) }, Header = "Mappings" };
-            var general = new TabItem { Content = new GeneralView { DataContext = new GeneralViewModel(Settings) }, Header = "General" };
+            var gitHub = new TabItem { Content = new GitHubView { DataContext = new GitHubViewModel(model) }, Header = "GitHub" };
+            var mappings = new TabItem { Content = new MappingsView { DataContext = new MappingsViewModel(model) }, Header = "Mappings" };
+            var general = new TabItem { Content = new GeneralView { DataContext = new GeneralViewModel(model) }, Header = "General" };
             TabItems = new ObservableCollection<TabItem>
             {
                 gitHub,
@@ -78,17 +70,20 @@ namespace Zombie
         /// <param name="obj"></param>
         private void OnGuiUpdate(GuiUpdate obj)
         {
+            // (Konrad) Since the UpdateRunner runs on a pool thread we can't set UI controls from there.
+            // One way to set their status is to use a Dispatcher that every UI control has.
+
             switch (obj.Status)
             {
                 case Status.Failed:
                     Control?.Dispatcher.Invoke(() => { StatusBarManager.StatusLabel.Text = obj.Message; });
                     break;
                 case Status.Succeeded:
+                    Model.Settings = obj.Settings;
                     Control?.Dispatcher.Invoke(() => { StatusBarManager.StatusLabel.Text = obj.Message; });
                     break;
                 case Status.UpToDate:
-                    // (Konrad) Since the UpdateRunner runs on a pool thread we can't set UI controls from there.
-                    // One way to set their status is to use a Dispatcher that every UI control has.
+                    Model.Settings = obj.Settings;
                     Control?.Dispatcher.Invoke(() => { StatusBarManager.StatusLabel.Text = obj.Message; });
                     break;
                 default:
@@ -124,13 +119,13 @@ namespace Zombie
                 }
 
                 var filePath = dialog.FileName;
-                Settings.SettingsLocation = filePath;
+                Model.Settings.SettingsLocation = filePath;
             }
             
             switch (obj.Type)
             {  
                 case SettingsType.Local:
-                    if (!SettingsUtils.StoreSettings(Settings, true))
+                    if (!SettingsUtils.StoreSettings(Model.Settings, true))
                     {
                         StatusBarManager.StatusLabel.Text =
                             "Zombie Settings not saved! Make sure you have write access to chosen path.";
@@ -138,7 +133,7 @@ namespace Zombie
                     }
                     break;
                 case SettingsType.Remote:
-                    if (!SettingsUtils.StoreSettings(Settings))
+                    if (!SettingsUtils.StoreSettings(Model.Settings))
                     {
                         StatusBarManager.StatusLabel.Text =
                             "Zombie Settings not saved! Make sure you have write access to chosen path.";
@@ -146,7 +141,7 @@ namespace Zombie
                     }
                     break;
                 case SettingsType.GitHub:
-                    Model.PushSettingsToGitHub(Settings);
+                    Model.PushSettingsToGitHub(Model.Settings);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -173,7 +168,7 @@ namespace Zombie
 
             try
             {
-                var unused = App.Client.SetSettings(Settings);
+                var unused = App.Client.SetSettings(Model.Settings);
             }
             catch (Exception e)
             {

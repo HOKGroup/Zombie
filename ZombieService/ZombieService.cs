@@ -29,7 +29,9 @@ namespace ZombieService
 
         protected override void OnStart(string[] args)
         {
+#if DEBUG
             System.Diagnostics.Debugger.Launch();
+#endif
             InitLogging(args);
 
             // (Konrad) Set host, settings and runner if they don't exist

@@ -98,9 +98,13 @@ namespace ZombieService.Runner
                         return;
                     }
 
-                    var to = Path.Combine(FilePathUtils.CreateUserSpecificPath(loc.DirectoryPath), asset.Name);
+                    // (Konrad) Make sure that destination folder exists.
+                    var dirPath = FilePathUtils.CreateUserSpecificPath(loc.DirectoryPath);
+                    if (!Directory.Exists(dirPath)) FileUtils.CreateDirectory(dirPath);
+
                     try
                     {
+                        var to = Path.Combine(dirPath, asset.Name);
                         var fs = new FileStream(to, FileMode.OpenOrCreate, FileAccess.ReadWrite,
                             FileShare.None);
                         fileStreams.Add(to, fs);
@@ -163,6 +167,10 @@ namespace ZombieService.Runner
                         // make sure that file is not locked
                         var stream = fileStreams[to];
                         stream?.Close();
+
+                        // (Konrad) Make sure that directory exists.
+                        if (!Directory.Exists(Path.GetDirectoryName(to)))
+                            FileUtils.CreateDirectory(Path.GetDirectoryName(to));
 
                         if (FileUtils.Copy(from, to)) continue;
 
@@ -271,6 +279,9 @@ namespace ZombieService.Runner
         /// <returns></returns>
         private static bool ExtractToDirectory(AssetObject asset, string destinationDir, IReadOnlyDictionary<string, FileStream> streams)
         {
+            // (Konrad) Make sure that destination folder exists.
+            if (!Directory.Exists(destinationDir)) FileUtils.CreateDirectory(destinationDir);
+
             var dir = FileUtils.GetZombieDownloadsDirectory();
             var filePath = Path.Combine(dir, asset.Name);
             if (!File.Exists(filePath)) return false;

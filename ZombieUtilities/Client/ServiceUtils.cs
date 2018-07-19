@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Net;
-using System.Net.Sockets;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.NetworkInformation;
 using System.ServiceModel;
 using System.Text;
 using System.Xml;
@@ -50,13 +51,42 @@ namespace ZombieUtilities.Client
             return binding;
         }
 
-        public static int FreeTcpPort()
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="startingPort"></param>
+        /// <returns></returns>
+        public static int FreeTcpPort(int startingPort = 8000)
         {
-            var l = new TcpListener(IPAddress.Loopback, 0);
-            l.Start();
-            var port = ((IPEndPoint)l.LocalEndpoint).Port;
-            l.Stop();
-            return port;
+            var portArray = new List<int>();
+            var properties = IPGlobalProperties.GetIPGlobalProperties();
+
+            // Ignore active connections
+            var connections = properties.GetActiveTcpConnections();
+            portArray.AddRange(from n in connections
+                where n.LocalEndPoint.Port >= startingPort
+                select n.LocalEndPoint.Port);
+
+            // Ignore active tcp listners
+            var endPoints = properties.GetActiveTcpListeners();
+            portArray.AddRange(from n in endPoints
+                where n.Port >= startingPort
+                select n.Port);
+
+            // Ignore active udp listeners
+            endPoints = properties.GetActiveUdpListeners();
+            portArray.AddRange(from n in endPoints
+                where n.Port >= startingPort
+                select n.Port);
+
+            portArray.Sort();
+
+            for (var i = startingPort; i < ushort.MaxValue; i++)
+            {
+                if (!portArray.Contains(i)) return i;
+            }
+
+            return 0;
         }
     }
 }

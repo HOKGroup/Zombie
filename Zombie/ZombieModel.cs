@@ -1,23 +1,33 @@
 ﻿#region References
 
 using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using GalaSoft.MvvmLight.Messaging;
 using Newtonsoft.Json;
 using NLog;
 using Octokit;
 using Zombie.Utilities;
-using ZombieUtilities;
-using ZombieUtilities.Client;
 
 #endregion
 
 namespace Zombie.Controls
 {
-    public class ZombieModel
+    public class ZombieModel : INotifyPropertyChanged
     {
         private static Logger _logger = LogManager.GetCurrentClassLogger();
+
+        private ZombieSettings _settings;
+        public ZombieSettings Settings
+        {
+            get { return _settings; }
+            set { _settings = value; RaisePropertyChanged("Settings"); }
+        }
+
+        public ZombieModel(ZombieSettings settings)
+        {
+            Settings = settings;
+        }
 
         /// <summary>
         /// Downloads latest pre-release from GitHub.
@@ -25,41 +35,29 @@ namespace Zombie.Controls
         /// <param name="settings">Zombie Settings.</param>
         public async void DownloadPreRelease(ZombieSettings settings)
         {
-            var segments = ParseUrl(settings.Address);
+            var segments = GitHubUtils.ParseUrl(settings.Address);
             var client = new GitHubClient(new ProductHeaderValue("Zombie"));
             var tokenAuth = new Credentials(settings.AccessToken);
             client.Credentials = tokenAuth;
 
             var releases = await client.Repository.Release.GetAll(segments["owner"], segments["repo"], ApiOptions.None);
             var prerelease = releases.OrderBy(x => x.PublishedAt).FirstOrDefault(x => x.Prerelease);
-            if (prerelease == null) return;
-
-            //TODO: There is no reason to carry a different Release wrapper etc. Let's use Octakit one. 
-            settings.LatestRelease = new ReleaseObject
+            if (prerelease == null)
             {
-                Id = prerelease.Id,
-                Name = prerelease.Name,
-                Body = prerelease.Body,
-                PublishedAt = prerelease.PublishedAt.Value.LocalDateTime,
-                TagName = prerelease.TagName,
-                Prerelease = prerelease.Prerelease,
-                Author = new AuthorObject
+                Messenger.Default.Send(new PrereleaseDownloaded
                 {
-                    Login = prerelease.Author.Login,
-                },
-                Assets = prerelease.Assets.Select(x => new AssetObject
-                {
-                    Id = x.Id,
-                    Name = x.Name,
-                    Url = x.Url
-                }).ToList()
-            };
+                    Status = PrereleaseStatus.Failed,
+                    Settings = null
+                });
+                return;
+            }
 
-            Messenger.Default.Send(new GuiUpdate
+            settings.LatestRelease = new ReleaseObject(prerelease);
+
+            Messenger.Default.Send(new PrereleaseDownloaded
             {
-                Settings = settings,
-                Message = "Found new Pre-Release! " + prerelease.TagName,
-                Status = Status.Succeeded
+                Status = PrereleaseStatus.Found,
+                Settings = settings
             });
         }
 
@@ -71,7 +69,7 @@ namespace Zombie.Controls
         {
             try
             {
-                var segments = ParseUrl(settings.SettingsLocation);
+                var segments = GitHubUtils.ParseUrl(settings.SettingsLocation);
                 var client = new GitHubClient(new ProductHeaderValue("Zombie"));
                 var tokenAuth = new Credentials(settings.AccessToken);
                 client.Credentials = tokenAuth;
@@ -132,7 +130,7 @@ namespace Zombie.Controls
                 var tokenAuth = new Credentials(settings.AccessToken);
                 client.Credentials = tokenAuth;
 
-                var segments = ParseUrl(settings.Address);
+                var segments = GitHubUtils.ParseUrl(settings.Address);
                 var unused = await client.Repository.Release.Edit(segments["owner"], segments["repo"], settings.LatestRelease.Id,
                     new ReleaseUpdate
                     {
@@ -153,29 +151,10 @@ namespace Zombie.Controls
             }
         }
 
-        #region Utilities
-
-        /// <summary>
-        /// Parses URL into its components parts. 
-        /// </summary>
-        /// <param name="url">Base url to parse.</param>
-        /// <returns>Dictionary with owner, repo and file info.</returns>
-        public static Dictionary<string, string> ParseUrl(string url)
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void RaisePropertyChanged(string info)
         {
-            var uri = new Uri(url);
-            var segments = uri.Segments;
-            var owner = segments[1].TrimLastCharacter("/");
-            var repo = segments[2].TrimLastCharacter("/");
-            var file = segments.Length > 3 ? segments[4] : string.Empty;
-
-            return new Dictionary<string, string>()
-            {
-                {"owner", owner},
-                {"repo", repo},
-                {"file", file}
-            };
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
         }
-
-        #endregion
     }
 }

@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using NLog;
 using RestSharp;
+using ZombieUtilities;
 
 namespace Zombie.Utilities
 {
@@ -58,6 +60,27 @@ namespace Zombie.Utilities
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Parses URL into its components parts. 
+        /// </summary>
+        /// <param name="url">Base url to parse.</param>
+        /// <returns>Dictionary with owner, repo and file info.</returns>
+        public static Dictionary<string, string> ParseUrl(string url)
+        {
+            var uri = new Uri(url);
+            var segments = uri.Segments;
+            var owner = segments[1].TrimLastCharacter("/");
+            var repo = segments[2].TrimLastCharacter("/");
+            var file = segments.Length > 3 ? segments[4] : string.Empty;
+
+            return new Dictionary<string, string>()
+            {
+                {"owner", owner},
+                {"repo", repo},
+                {"file", file}
+            };
         }
     }
 }

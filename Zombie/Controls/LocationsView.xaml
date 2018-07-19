@@ -11,11 +11,10 @@
              mc:Ignorable="d" 
              d:DesignHeight="200" d:DesignWidth="200">
     <UserControl.Resources>
-        <utilities:BoolToVisInverterConverter x:Key="BoolToVisInverterConverter"/>
-        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-        <utilities:BooleanInverterConverter x:Key="BooleanInverterConverter"/>
+        <utilities:LocationTypeToVisibilityConverter x:Key="LocationTypeToVisibilityConverter"/>
+        <utilities:LocationTypeToBooleanConverter x:Key="LocationTypeToBooleanConverter"/>
         <utilities:BoolToCursorConverter x:Key="BoolToCursorConverter"/>
-        <Style TargetType="TextBox">
+        <Style TargetType="TextBox" x:Key="TextBoxStyle">
             <Style.Triggers>
                 <DataTrigger Binding="{Binding IsKeyboardFocused, RelativeSource={RelativeSource Self}}" Value="false">
                     <Setter Property="Template">
@@ -45,14 +44,21 @@
                Width="18" 
                VerticalAlignment="Center" 
                HorizontalAlignment="Center" 
-               Visibility="{Binding LocationObject.IsSourceLocation, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+               Visibility="{Binding LocationObject.LocationType, Converter={StaticResource LocationTypeToVisibilityConverter}, ConverterParameter=Source}"/>
+        <Image Source="../Resources/delete_32x32.png" 
+               Width="18" 
+               Grid.Row="0" 
+               Grid.Column="0" 
+               VerticalAlignment="Center" 
+               HorizontalAlignment="Center" 
+               Visibility="{Binding LocationObject.LocationType, Converter={StaticResource LocationTypeToVisibilityConverter}, ConverterParameter=Trash}"/>
         <Button Grid.Row="0" 
                 Grid.Column="0" 
                 ToolTip="Give me a folder!"
                 Command="{Binding AddDirectoryPath, Mode=OneWay}"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Center"
-                Visibility="{Binding LocationObject.IsSourceLocation, Converter={StaticResource BoolToVisInverterConverter}}"
+                Visibility="{Binding LocationObject.LocationType, Converter={StaticResource LocationTypeToVisibilityConverter}, ConverterParameter=Folder}"
                 Cursor="Hand" Margin="1">
             <Button.Template>
                 <ControlTemplate TargetType="Button">
@@ -75,7 +81,7 @@
                 Command="{Binding RemoveDirectoryPath, Mode=OneWay}"
                 VerticalAlignment="Center"
                 HorizontalAlignment="Center"
-                IsEnabled="{Binding LocationObject.IsSourceLocation, Converter={StaticResource BooleanInverterConverter}}"
+                IsEnabled="{Binding LocationObject.LocationType, Converter={StaticResource LocationTypeToBooleanConverter}}"
                 Cursor="Hand">
             <Button.Template>
                 <ControlTemplate TargetType="Button">
@@ -89,7 +95,7 @@
                             <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
                             <Setter TargetName="image2" Property="Visibility" Value="Visible" />
                         </Trigger>
-                        <DataTrigger Binding="{Binding Path=LocationObject.IsSourceLocation}" Value="True">
+                        <DataTrigger Binding="{Binding Path=LocationObject.LocationType, Converter={StaticResource LocationTypeToBooleanConverter}}" Value="False">
                             <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
                             <Setter TargetName="image2" Property="Visibility" Value="Collapsed" />
                             <Setter TargetName="image3" Property="Visibility" Value="Visible" />
@@ -102,11 +108,12 @@
                           Grid.Row="0" 
                           Grid.Column="2" 
                           ToolTip="{Binding LocationObject.DirectoryPath}"
-                          IsEnabled="{Binding LocationObject.IsSourceLocation, Converter={StaticResource BooleanInverterConverter}}">
+                          IsEnabled="{Binding LocationObject.LocationType, Converter={StaticResource LocationTypeToBooleanConverter}}">
             <TextBox x:Name="AccessTokenTextBox" 
                      Padding="5,0,0,0" 
                      IsEnabled="False"
                      FontSize="11" 
+                     Style="{StaticResource TextBoxStyle}"
                      Text="{Binding LocationObject.DirectoryPath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                 <utilities:WatermarkService.Watermark>
                     <TextBlock FontSize="11">

@@ -9,6 +9,7 @@ using System.Windows.Data;
 using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using ArgumentOutOfRangeException = System.ArgumentOutOfRangeException;
 
 #endregion
 
@@ -30,28 +31,37 @@ namespace Zombie.Utilities.Wpf
             switch (extension)
             {
                 case ".dll":
-                    // (Konrad) Placeholder Asset is *.dll so this will be the only one that can be disabled
                     return isPlaceholder 
                         ? new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/dllDisabled_32x32.png", UriKind.Absolute))  
                         : new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/dll_32x32.png", UriKind.Absolute));
                 case ".zip":
                 case ".rar":
-                    return new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/zip_32x32.png", UriKind.Absolute));
+                    return isPlaceholder
+                        ? new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/zipDisabled_32x32.png", UriKind.Absolute))
+                        : new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/zip_32x32.png", UriKind.Absolute));
                 case ".msi":
-                    return new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/msi_32x32.png", UriKind.Absolute));
+                    return isPlaceholder
+                        ? new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/msiDisabled_32x32.png", UriKind.Absolute))
+                        : new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/msi_32x32.png", UriKind.Absolute));
                 case ".jpg":
                 case ".jpeg":
                 case ".png":
                 case ".tiff":
                 case ".gif":
                 case ".svg":
-                    return new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/image_32x32.png", UriKind.Absolute));
+                    return isPlaceholder
+                        ? new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/imageDisabled_32x32.png", UriKind.Absolute))
+                        : new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/image_32x32.png", UriKind.Absolute));
                 case ".exe":
-                    return new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/exe_32x32.png", UriKind.Absolute));
+                    return isPlaceholder
+                        ? new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/exeDisabled_32x32.png", UriKind.Absolute))
+                        : new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/exe_32x32.png", UriKind.Absolute));
                 case "":
                     return new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/folderNarrow_32x32.png", UriKind.Absolute));
                 default:
-                    return new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/unknown_32x32.png", UriKind.Absolute));
+                    return isPlaceholder
+                        ? new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/unknownDisabled_32x32.png", UriKind.Absolute))
+                        : new BitmapImage(new Uri("pack://application:,,,/Zombie;component/Resources/unknown_32x32.png", UriKind.Absolute));
             }
         }
 
@@ -155,6 +165,54 @@ namespace Zombie.Utilities.Wpf
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             return (value is bool && (bool)value) ? Visibility.Collapsed : Visibility.Visible;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class LocationTypeToVisibilityConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var locType = (LocationType) value;
+            var param = (string) parameter;
+            switch (locType)
+            {
+                case LocationType.Folder:
+                    return param == "Folder" ? Visibility.Visible : Visibility.Collapsed;
+                case LocationType.Trash:
+                    return param == "Trash" ? Visibility.Visible : Visibility.Collapsed;
+                case LocationType.Source:
+                    return param == "Source" ? Visibility.Visible : Visibility.Collapsed;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public class LocationTypeToBooleanConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            var locType = (LocationType)value;
+            switch (locType)
+            {
+                case LocationType.Folder:
+                    return true;
+                case LocationType.Trash:
+                case LocationType.Source:
+                    return false;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

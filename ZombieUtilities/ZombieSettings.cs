@@ -98,18 +98,12 @@ namespace Zombie.Utilities
 
     public class Location : INotifyPropertyChanged
     {
-        private bool _isSourceLocation;
-        public bool IsSourceLocation
+        private LocationType _locationType = LocationType.Folder;
+        [JsonConverter(typeof(StringEnumConverter))]
+        public LocationType LocationType
         {
-            get { return _isSourceLocation; }
-            set { _isSourceLocation = value; RaisePropertyChanged("IsSourceLocation"); }
-        }
-
-        private int _maxHeight = 98;
-        public int MaxHeight
-        {
-            get { return _maxHeight; }
-            set { _maxHeight = value; RaisePropertyChanged("MaxHeight"); }
+            get { return _locationType; }
+            set { _locationType = value; RaisePropertyChanged("LocationType"); }
         }
 
         private string _directoryPath = string.Empty;
@@ -133,6 +127,19 @@ namespace Zombie.Utilities
         }
     }
 
+    /// <summary>
+    /// 
+    /// </summary>
+    public enum LocationType
+    {
+        Folder,
+        Source,
+        Trash
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
     public enum Frequency
     {
 #if DEBUG

@@ -6,7 +6,6 @@ using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using NLog;
 using Zombie.Utilities;
-using ZombieUtilities.Client;
 
 #endregion
 
@@ -23,45 +22,17 @@ namespace Zombie.Controls
         public RelayCommand FrequencyChanged { get; set; }
         public RelayCommand PushToGitHub { get; set; }
 
-        private ZombieSettings _settings;
-        public ZombieSettings Settings
-        {
-            get { return _settings; }
-            set { _settings = value; RaisePropertyChanged(() => Settings); }
-        }
-
         #endregion
 
-        public GeneralViewModel(ZombieSettings settings)
+        public GeneralViewModel(ZombieModel model)
         {
-            Settings = settings;
+            Model = model;
 
             SaveSettingsLocal = new RelayCommand(OnSaveSettingsLocal);
             SaveSettingsRemote = new RelayCommand(OnSaveSettingsRemote);
             FrequencyChanged = new RelayCommand(OnFrequencyChanged);
             PushToGitHub = new RelayCommand(OnPushToGitHub);
-
-            Messenger.Default.Register<GuiUpdate>(this, OnGuiUpdate);
         }
-
-        #region Message Handlers
-
-        private void OnGuiUpdate(GuiUpdate obj)
-        {
-            switch (obj.Status)
-            {
-                case Status.Failed:
-                    break;
-                case Status.Succeeded:
-                case Status.UpToDate:
-                    Settings = obj.Settings;
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-
-        #endregion
 
         #region Command Handlers
 
@@ -84,7 +55,7 @@ namespace Zombie.Controls
         {
             try
             {
-                App.Client.ChangeFrequency(Settings.Frequency);
+                App.Client.ChangeFrequency(Model.Settings.Frequency);
             }
             catch (Exception e)
             {

@@ -54,6 +54,7 @@ namespace Zombie
 
                 // (Konrad) Get latest settings from ZombieService
                 Settings = Client.GetSettings();
+
                 connected = true;
             }
             catch (Exception ex)
@@ -62,8 +63,8 @@ namespace Zombie
             }
 
             // (Konrad) Create the startup window
-            var m = new ZombieModel();
-            var vm = new ZombieViewModel(Settings, m);
+            var m = new ZombieModel(Settings);
+            var vm = new ZombieViewModel(m);
             var view = new ZombieView
             {
                 DataContext = vm

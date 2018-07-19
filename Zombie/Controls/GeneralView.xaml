@@ -100,7 +100,7 @@
                 Command="{Binding PushToGitHub, Mode=OneWay}" 
                 Margin="0,0,94,0" 
                 Cursor="Hand" 
-                IsEnabled="{Binding Path=Settings.SettingsLocation, Converter={StaticResource FilePathToBoolConverter}}"
+                IsEnabled="{Binding Path=Model.Settings.SettingsLocation, Converter={StaticResource FilePathToBoolConverter}}"
                 Background="Transparent" 
                 Visibility="Visible" 
                 HorizontalAlignment="Right" 
@@ -117,7 +117,7 @@
                             <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
                             <Setter TargetName="image2" Property="Visibility" Value="Visible" />
                         </Trigger>
-                        <DataTrigger Binding="{Binding Path=Settings.SettingsLocation, Converter={StaticResource FilePathToBoolConverter}}" Value="False">
+                        <DataTrigger Binding="{Binding Path=Model.Settings.SettingsLocation, Converter={StaticResource FilePathToBoolConverter}}" Value="False">
                             <Setter TargetName="image1" Property="Visibility" Value="Collapsed" />
                             <Setter TargetName="image2" Property="Visibility" Value="Collapsed" />
                             <Setter TargetName="image3" Property="Visibility" Value="Visible" />
@@ -147,7 +147,7 @@
                          BorderThickness="1" 
                          BorderBrush="#2B374F"
                          FontSize="16" 
-                         Text="{Binding Settings.SettingsLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                         Text="{Binding Model.Settings.SettingsLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                     <utilities:WatermarkService.Watermark>
                         <TextBlock FontSize="16">
                             Remote Settings Location
@@ -156,10 +156,10 @@
                 </TextBox>
             </AdornerDecorator>
             <ComboBox x:Name="MarkValueComboBox"
-                      ItemsSource="{Binding Settings.Frequency, Converter={StaticResource EnumToCollectionConverter}, Mode=OneTime}"
+                      ItemsSource="{Binding Model.Settings.Frequency, Converter={StaticResource EnumToCollectionConverter}, Mode=OneTime}"
                       SelectedValuePath="Value"
                       DisplayMemberPath="Description"
-                      SelectedValue="{Binding Settings.Frequency}"
+                      SelectedValue="{Binding Model.Settings.Frequency}"
                       SelectedIndex="0"
                       Margin="10,17,0,0" Width="150" Height="24" HorizontalAlignment="Left"
                       VerticalAlignment="Top">

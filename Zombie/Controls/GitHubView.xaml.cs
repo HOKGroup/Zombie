@@ -17,13 +17,13 @@ namespace Zombie.Controls
         {
             if (DataContext != null)
             {
-                ((dynamic)DataContext).Settings.AccessToken = ((PasswordBox)sender).Password;
+                ((dynamic)DataContext).Model.Settings.AccessToken = ((PasswordBox)sender).Password;
             }
         }
 
         private void GitHubView_OnLoaded(object sender, RoutedEventArgs e)
         {
-            AccessTokenTextBox.Password = ((GitHubViewModel) DataContext).Settings.AccessToken;
+            AccessTokenTextBox.Password = ((GitHubViewModel) DataContext).Model.Settings.AccessToken;
         }
     }
 }

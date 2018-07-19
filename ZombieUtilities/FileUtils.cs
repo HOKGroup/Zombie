@@ -95,5 +95,24 @@ namespace Zombie.Utilities
             }
             return true;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
+        public static bool CreateDirectory(string path)
+        {
+            try
+            {
+                Directory.CreateDirectory(path);
+                return true;
+            }
+            catch (Exception e)
+            {
+                _logger.Fatal(e.Message);
+                return false;
+            }
+        }
     }
 }

@@ -138,7 +138,7 @@ namespace Zombie.Controls
             var targetItem = dropInfo.TargetItem as AssetViewModel;
 
             if (sourceItem == null || targetItem == null) return;
-            if (sourceItem.Asset.Name == Resources.Asset_PlaceholderName)
+            if (sourceItem.IsPlaceholder)
             {
                 dropInfo.Effects = DragDropEffects.None;
                 return;
@@ -163,22 +163,19 @@ namespace Zombie.Controls
             var targetItem = dropInfo.TargetItem as AssetViewModel;
 
             if (sourceItem == null || targetItem == null) return;
-            if (sourceItem.Asset.Name == Resources.Asset_PlaceholderName) return;
+            if (sourceItem.IsPlaceholder) return;
 
-            if ((dropInfo.KeyStates & DragDropKeyStates.ControlKey) != 0)
+            if ((dropInfo.KeyStates & DragDropKeyStates.ControlKey) == 0)
             {
-                // (Konrad) It is being copied so no need to delete from source.
-            }
-            else
-            {
-                var sourceCollection = (ListCollectionView) dropInfo.DragInfo.SourceCollection;
+                // (Konrad) It is NOT being copied so no need to delete from source.
+                var sourceCollection = (ListCollectionView)dropInfo.DragInfo.SourceCollection;
                 sourceCollection.Remove(sourceItem);
 
                 // (Konrad) In case that we removed last item, let's add a placeholder.
                 if (sourceCollection.Count == 0)
                 {
                     sourceCollection.AddNewItem(
-                        new AssetViewModel(new AssetObject {Name = Resources.Asset_PlaceholderName})
+                        new AssetViewModel(new AssetObject { Name = Resources.Asset_PlaceholderName })
                         {
                             Parent = sourceItem.Parent,
                             IsPlaceholder = true
@@ -189,8 +186,12 @@ namespace Zombie.Controls
             sourceItem.Parent = targetItem.Parent;
             if (!targetItem.Parent.Assets.Contains(sourceItem))
             {
-                // (Konrad) We need to create a new VM here otherwise all references point to the same object causing weird UI behavior.
-                targetItem.Parent.Assets.Add(new AssetViewModel(sourceItem.Asset) { Parent = sourceItem.Parent });
+                // (Konrad) We need to create a new VM here otherwise all references
+                // point to the same object causing weird UI behavior.
+                targetItem.Parent.Assets.Add(new AssetViewModel(sourceItem.Asset)
+                {
+                    Parent = sourceItem.Parent
+                });
             }
 
             // (Konrad) If we are adding an item to location, we can remove placeholder

@@ -6,7 +6,6 @@ namespace ZombieUtilities.Client
 {
     public class ZombieServiceClient : DuplexClientBase<IZombieService>, IZombieService
     {
-
         public ZombieServiceClient(InstanceContext callbackInstance) :
                 base(callbackInstance)
         {

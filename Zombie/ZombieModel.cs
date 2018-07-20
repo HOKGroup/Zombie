@@ -15,6 +15,8 @@ namespace Zombie.Controls
 {
     public class ZombieModel : INotifyPropertyChanged
     {
+        #region Properties
+
         private static Logger _logger = LogManager.GetCurrentClassLogger();
 
         private ZombieSettings _settings;
@@ -23,6 +25,8 @@ namespace Zombie.Controls
             get { return _settings; }
             set { _settings = value; RaisePropertyChanged("Settings"); }
         }
+
+        #endregion
 
         public ZombieModel(ZombieSettings settings)
         {

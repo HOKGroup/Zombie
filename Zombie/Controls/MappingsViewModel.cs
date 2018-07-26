@@ -11,7 +11,6 @@ using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Command;
 using GalaSoft.MvvmLight.Messaging;
 using Zombie.Utilities;
-using Zombie.Utilities.Wpf;
 using ZombieUtilities.Client;
 
 #endregion
@@ -71,9 +70,10 @@ namespace Zombie.Controls
                     }));
                     break;
                 case PrereleaseStatus.Failed:
-                    Application.Current.Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() => {
-                        ProcessUpToDate(obj.Settings);
-                    }));
+                    Messenger.Default.Send(new UpdateStatus
+                    {
+                        Message = "Could not find any Pre-Releases!"
+                    });
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

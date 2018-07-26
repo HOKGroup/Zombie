@@ -53,8 +53,9 @@ namespace ZombieService.Host
 
         public bool SetSettings(ZombieSettings settings)
         {
-            // (Konrad) Update Service Settings.
-            Program.Settings = settings;
+            // (Konrad) Update Service Settings but only if they are local
+            // We should never override remote settings from the GUI.
+            if(settings.StoreSettings) Program.Settings = settings;
 
             // (Konrad) Update Registry
             var assemblyLocation = Assembly.GetExecutingAssembly().Location;

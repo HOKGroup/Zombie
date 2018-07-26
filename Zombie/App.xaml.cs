@@ -38,6 +38,7 @@ namespace Zombie
 
         private void OnStartup(object sender, StartupEventArgs e)
         {
+            _logger.Info("Zombie is powering up...");
             var connected = false;
             try
             {
@@ -56,6 +57,7 @@ namespace Zombie
                 Settings = Client.GetSettings();
 
                 connected = true;
+                _logger.Info("Successfully connected to Zombie Service at http://localhost:8000/ZombieService/Service.svc");
             }
             catch (Exception ex)
             {
@@ -72,15 +74,9 @@ namespace Zombie
             view.Show();
 
             Messenger.Default.Send(connected
-                ? new UpdateStatus { Message = "Successfully connected to ZombieService!" }
-                : new UpdateStatus { Message = "Connection to ZombieService failed!" });
-        }
-
-        private static void OnGuiUpdate(GuiUpdate update)
-        {
-            if (StopUpdates) return;
-
-            Messenger.Default.Send(update);
+                ? new UpdateStatus {Message = "Successfully connected to ZombieService!"}
+                : new UpdateStatus {Message = "Connection to ZombieService failed!"});
+            _logger.Info("Zombie is up and running!");
         }
 
         private void OnExit(object sender, ExitEventArgs e)
@@ -95,7 +91,14 @@ namespace Zombie
             catch (Exception ex)
             {
                 _logger.Fatal(ex.Message);
+                _logger.Info("Zombie pooped its pants while exiting.");
             }
+        }
+
+        private static void OnGuiUpdate(GuiUpdate update)
+        {
+            if (StopUpdates) return;
+            Messenger.Default.Send(update);
         }
     }
 }

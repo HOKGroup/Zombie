@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Threading;
 using Newtonsoft.Json;
 using NLog;
 
@@ -104,6 +106,9 @@ namespace Zombie.Utilities
             return result;
         }
 
+        private const int NumberOfRetries = 6;
+        private const int DelayOnRetry = 10000;
+
         /// <summary>
         /// 
         /// </summary>
@@ -120,16 +125,25 @@ namespace Zombie.Utilities
             // If we can't delete it we might as well jump back since it won't be overriden. 
             if (!FileUtils.DeleteFile(filePath)) return false;
 
-            using (var client = new WebClient())
+            using (var client = new WebClient {Proxy = WebRequest.DefaultWebProxy, UseDefaultCredentials = true})
             {
-                try
+                for (var i = 1; i <= NumberOfRetries; ++i)
                 {
-                    client.DownloadFile(path, filePath);
-                }
-                catch (Exception e)
-                {
-                    _logger.Fatal("Remote Settings failed to download: " + e.Message);
-                    return false;
+                    try
+                    {
+                        client.DownloadFile(path, filePath);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.Error(e.Message + " retrying...");
+                        if (i == NumberOfRetries)
+                        {
+                            _logger.Fatal("Remote Settings failed to download: " + e.Message);
+                            return false;
+                        }
+
+                        Thread.Sleep(DelayOnRetry);
+                    }
                 }
             }
 

@@ -44,15 +44,24 @@ namespace Zombie.Controls
             var tokenAuth = new Credentials(settings.AccessToken);
             client.Credentials = tokenAuth;
 
-            var releases = await client.Repository.Release.GetAll(segments["owner"], segments["repo"], ApiOptions.None);
-            var prerelease = releases.OrderBy(x => x.PublishedAt).FirstOrDefault(x => x.Prerelease);
-            if (prerelease == null)
+            Release prerelease = null;
+            try
             {
-                Messenger.Default.Send(new PrereleaseDownloaded
+                var releases = await client.Repository.Release.GetAll(segments["owner"], segments["repo"], ApiOptions.None);
+                if (releases.Any()) prerelease = releases.OrderBy(x => x.PublishedAt).FirstOrDefault(x => x.Prerelease);
+                if (prerelease == null)
                 {
-                    Status = PrereleaseStatus.Failed,
-                    Settings = null
-                });
+                    Messenger.Default.Send(new PrereleaseDownloaded
+                    {
+                        Status = PrereleaseStatus.Failed,
+                        Settings = null
+                    });
+                    return;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Fatal("Failed to retrieve Pre-Release from GitHub. " + e.Message);
                 return;
             }
 

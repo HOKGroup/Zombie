@@ -21,14 +21,18 @@ namespace ZombieService.Runner
         private static Logger _logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
-        /// 
+        /// Method that retrieves the latest release from GitHub.
         /// </summary>
-        /// <param name="settings"></param>
+        /// <param name="settings">Zombie Settings to be used to retrieve latest Release.</param>
         public static async void GetLatestRelease(ZombieSettings settings)
         {
             if (string.IsNullOrEmpty(settings?.AccessToken) || string.IsNullOrEmpty(settings.Address))
             {
-                _logger.Error("Connection failed!");
+                const string nf = "Not found";
+                const string e = "Exists";
+                var a = string.IsNullOrEmpty(settings.Address) ? nf : e;
+                var t = string.IsNullOrEmpty(settings.AccessToken) ? nf : e;
+                _logger.Error($"Connection failed! \nAddress: {a} \nAccessToken: {t}");
                 return;
             }
 
@@ -37,11 +41,20 @@ namespace ZombieService.Runner
             var tokenAuth = new Credentials(settings.AccessToken);
             client.Credentials = tokenAuth;
 
-            var release = await client.Repository.Release.GetLatest(segments["owner"], segments["repo"]);
-            var currentVersion = Properties.Settings.Default["CurrentVersion"].ToString();
-            if (!release.Assets.Any() || new Version(release.TagName).CompareTo(new Version(currentVersion)) <= 0)
+            Release release;
+            try
             {
-                PublishGuiUpdate(Program.Settings, Status.UpToDate, "Your release is up to date!");
+                release = await client.Repository.Release.GetLatest(segments["owner"], segments["repo"]);
+                var currentVersion = Properties.Settings.Default["CurrentVersion"].ToString();
+                if (!release.Assets.Any() || new Version(release.TagName).CompareTo(new Version(currentVersion)) <= 0)
+                {
+                    PublishGuiUpdate(Program.Settings, Status.UpToDate, "Your release is up to date! Version: " + currentVersion);
+                    return;
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Fatal("Failed to retrieve Release from GitHub. " + e.Message);
                 return;
             }
 
@@ -81,13 +94,14 @@ namespace ZombieService.Runner
 
             // (Konrad) Let's make sure that we own the files that we are trying to override
             var fileStreams = new Dictionary<string, FileStream>();
-            foreach (var loc in newSettings.DestinationAssets)
+            foreach (var loc in newSettings.DestinationAssets.OrderByDescending(x => (int)x.LocationType))
             {
                 foreach (var asset in loc.Assets)
                 {
                     if (asset.IsArchive())
                     {
-                        if (LockAllContents(settings, asset, FilePathUtils.CreateUserSpecificPath(loc.DirectoryPath), out var zippedStreams))
+                        // (Konrad) Use old settings
+                        if (LockAllContents(loc.LocationType == LocationType.Trash ? settings : newSettings, asset, loc.DirectoryPath, loc.LocationType, out var zippedStreams))
                         {
                             fileStreams = fileStreams.Concat(zippedStreams).GroupBy(x => x.Key)
                                 .ToDictionary(x => x.Key, x => x.First().Value);
@@ -95,23 +109,28 @@ namespace ZombieService.Runner
                         }
 
                         _logger.Error("Could not get access to all ZIP contents!");
+                        ReleaseStreams(fileStreams);
                         return;
                     }
 
-                    // (Konrad) Make sure that destination folder exists.
-                    var dirPath = FilePathUtils.CreateUserSpecificPath(loc.DirectoryPath);
-                    if (!Directory.Exists(dirPath)) FileUtils.CreateDirectory(dirPath);
+                    if (loc.LocationType != LocationType.Trash)
+                    {
+                        // (Konrad) Make sure that destination folder exists.
+                        if (!Directory.Exists(loc.DirectoryPath)) FileUtils.CreateDirectory(loc.DirectoryPath);
+                    }
+
+                    var to = Path.Combine(loc.DirectoryPath, asset.Name);
+                    if (!File.Exists(to)) continue;
 
                     try
                     {
-                        var to = Path.Combine(dirPath, asset.Name);
-                        var fs = new FileStream(to, FileMode.OpenOrCreate, FileAccess.ReadWrite,
-                            FileShare.None);
+                        var fs = new FileStream(to, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
                         fileStreams.Add(to, fs);
                     }
                     catch (Exception e)
                     {
                         _logger.Fatal(e.Message);
+                        ReleaseStreams(fileStreams);
                         return;
                     }
                 }
@@ -130,21 +149,25 @@ namespace ZombieService.Runner
                     {
                         if (asset.IsArchive())
                         {
-                            if(DeleteZipContents(asset, FilePathUtils.CreateUserSpecificPath(loc.DirectoryPath), fileStreams)) continue;
+                            if(DeleteZipContents(asset, loc.DirectoryPath, fileStreams)) continue;
 
                             _logger.Error("Could not override existing ZIP contents!");
+                            ReleaseStreams(fileStreams);
                             return;
                         }
 
-                        var to = Path.Combine(FilePathUtils.CreateUserSpecificPath(loc.DirectoryPath), asset.Name);
-
-                        // make sure that file is not locked
-                        var stream = fileStreams[to];
-                        stream?.Close();
+                        var to = Path.Combine(loc.DirectoryPath, asset.Name);
+                        if (fileStreams.ContainsKey(to))
+                        {
+                            // make sure that file is not locked
+                            var stream = fileStreams[to];
+                            stream?.Close();
+                        }
 
                         if (FileUtils.DeleteFile(to)) continue;
 
                         _logger.Error("Could not delete existing file!");
+                        ReleaseStreams(fileStreams);
                         return;
                     }
                 }
@@ -155,18 +178,21 @@ namespace ZombieService.Runner
                     {
                         if (asset.IsArchive())
                         {
-                            if (ExtractToDirectory(asset, FilePathUtils.CreateUserSpecificPath(loc.DirectoryPath), fileStreams)) continue;
+                            if (ExtractToDirectory(asset, loc.DirectoryPath, fileStreams)) continue;
 
                             _logger.Error("Could not override existing ZIP contents!");
+                            ReleaseStreams(fileStreams);
                             return;
                         }
 
                         var from = Path.Combine(dir, asset.Name);
-                        var to = Path.Combine(FilePathUtils.CreateUserSpecificPath(loc.DirectoryPath), asset.Name);
-
-                        // make sure that file is not locked
-                        var stream = fileStreams[to];
-                        stream?.Close();
+                        var to = Path.Combine(loc.DirectoryPath, asset.Name);
+                        if (fileStreams.ContainsKey(to))
+                        {
+                            // make sure that file is not locked
+                            var stream = fileStreams[to];
+                            stream?.Close();
+                        }
 
                         // (Konrad) Make sure that directory exists.
                         if (!Directory.Exists(Path.GetDirectoryName(to)))
@@ -175,6 +201,7 @@ namespace ZombieService.Runner
                         if (FileUtils.Copy(from, to)) continue;
 
                         _logger.Error("Could not override existing file!");
+                        ReleaseStreams(fileStreams);
                         return;
                     }
                 }
@@ -183,30 +210,43 @@ namespace ZombieService.Runner
             // (Konrad) Remove temporary assets
             if (!FileUtils.DeleteDirectory(dir))
             {
+                // (Konrad) Cleanup failed but we can continue.
                 _logger.Error("Could not remove temporary download assets!");
-                return;
             }
 
+            // (Konrad) This is important! 
+            ReleaseStreams(fileStreams);
+
+            // (Konrad) We need to store the current version for comparison on next update
             Properties.Settings.Default.CurrentVersion = release.TagName;
             Properties.Settings.Default.Save();
 
+            // (Konrad) Settings need to be updated with the latest one just downloaded
             newSettings.LatestRelease = new ReleaseObject(release);
             if (!newSettings.StoreSettings)
             {
                 newSettings.AccessToken = Program.Settings.AccessToken;
                 newSettings.SettingsLocation = Program.Settings.SettingsLocation;
             }
-
-            // (Konrad) Update Settings and publish to any GUI Clients
-            // Note: Since we are not overriding Remotely stored settings this scenario is possible:
-            // - Windows gets shut down. Next time it powers up, settings will be pulled from Remote
-            // - Remote settings are not updated by ZombieService here, so the GUI would reflect them, again.
             Program.Settings = newSettings;
 
-            PublishGuiUpdate(Program.Settings, Status.Succeeded, "Successfully updated to version: " + release.TagName);
+            // (Konrad) Publish to any open GUIs
+            PublishGuiUpdate(newSettings, Status.Succeeded, "Successfully updated to version: " + release.TagName);
         }
 
         #region Utilities
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="streams"></param>
+        private static void ReleaseStreams(Dictionary<string, FileStream> streams)
+        {
+            foreach (var s in streams.Values)
+            {
+                s.Close();
+            }
+        }
 
         /// <summary>
         /// 
@@ -236,15 +276,29 @@ namespace ZombieService.Runner
         /// <param name="settings"></param>
         /// <param name="asset"></param>
         /// <param name="destinationDir"></param>
+        /// <param name="type"></param>
         /// <param name="streams"></param>
         /// <returns></returns>
-        private static bool LockAllContents(ZombieSettings settings, AssetObject asset, string destinationDir, out Dictionary<string, FileStream> streams)
+        private static bool LockAllContents(ZombieSettings settings, AssetObject asset, string destinationDir, LocationType type, out Dictionary<string, FileStream> streams)
         {
             streams = new Dictionary<string, FileStream>();
             var dir = FileUtils.GetZombieDownloadsDirectory();
-            var filePath = Path.Combine(dir, asset.Name);
+            string filePath;
 
-            if (!GitHubUtils.DownloadAssets(settings, asset.Url, filePath)) return false;
+            if (type == LocationType.Trash)
+            {
+                filePath = Path.Combine(dir,
+                    Path.GetFileNameWithoutExtension(asset.Name) + "_old" + Path.GetExtension(asset.Name));
+
+                if (!File.Exists(filePath))
+                {
+                    if (!GitHubUtils.DownloadAssets(settings, asset.Url, filePath)) return false;
+                }
+            }
+            else
+            {
+                filePath = Path.Combine(dir, asset.Name);
+            }
 
             try
             {
@@ -253,10 +307,11 @@ namespace ZombieService.Runner
                     foreach (var file in zip.Entries)
                     {
                         var completeFileName = Path.Combine(destinationDir, file.FullName);
-                        if (file.Name == string.Empty || !Directory.Exists(Path.GetDirectoryName(completeFileName)))
-                            continue;
+                        if (file.Name == string.Empty || 
+                            !Directory.Exists(Path.GetDirectoryName(completeFileName)) ||
+                            !File.Exists(completeFileName)) continue;
 
-                        var fs = new FileStream(completeFileName, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+                        var fs = new FileStream(completeFileName, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
                         streams.Add(completeFileName, fs);
                     }
                 }
@@ -308,6 +363,7 @@ namespace ZombieService.Runner
                         }
 
                         file.ExtractToFile(completeFileName, true);
+                        File.SetLastWriteTime(completeFileName, DateTime.Now);
                     }
                 }
             }

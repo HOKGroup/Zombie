@@ -62,7 +62,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client\IZombieService.cs" />
-    <Compile Include="FilePathUtils.cs" />
     <Compile Include="FileUtils.cs" />
     <Compile Include="FrequencyUtils.cs" />
     <Compile Include="GitHubUtils.cs" />

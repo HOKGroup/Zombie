@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.ServiceProcess;
 using System.Runtime.InteropServices;
-using System.Linq;
+using NLog;
 using Zombie;
 using Zombie.Utilities;
 using ZombieService.Host;
@@ -15,29 +15,18 @@ namespace ZombieService
 {
     public partial class ZombieService : ServiceBase
     {
+        private static Logger _logger = LogManager.GetCurrentClassLogger();
+
         [DllImport("advapi32.dll", SetLastError = true)]
         private static extern bool SetServiceStatus(IntPtr handle, ref ServiceStatus serviceStatus);
 
         public ZombieService(IReadOnlyList<string> args)
         {
             InitializeComponent();
-
-            Program.Host = HostUtils.CreateHost(Program.Host);
-            Program.Settings = SettingsUtils.GetSettings(args);
-            Program.Runner = new ZombieRunner(Program.Settings);
         }
 
         protected override void OnStart(string[] args)
         {
-#if DEBUG
-            System.Diagnostics.Debugger.Launch();
-#endif
-
-            // (Konrad) Set host, settings and runner if they don't exist
-            Program.Host = HostUtils.CreateHost(Program.Host);
-            Program.Settings = SettingsUtils.GetSettings(args);
-            Program.Runner = new ZombieRunner(Program.Settings);
-
             // Update the service state to Start Pending.  
             var serviceStatus = new ServiceStatus
             {
@@ -45,6 +34,16 @@ namespace ZombieService
                 dwWaitHint = 100000
             };
             SetServiceStatus(ServiceHandle, ref serviceStatus);
+
+            var arguments = Environment.GetCommandLineArgs();
+            _logger.Info("Starting Zombie. Settings: " + (arguments.Length >= 3 ? arguments[1] : "No Path"));
+
+            System.Diagnostics.Debugger.Launch();
+
+            // (Konrad) Set host, settings and runner if they don't exist
+            Program.Host = HostUtils.CreateHost(Program.Host);
+            Program.Settings = SettingsUtils.GetSettings(new[]{arguments[1], arguments[2]});
+            Program.Runner = new ZombieRunner(Program.Settings);
 
             // Update the service state to Running.  
             serviceStatus.dwCurrentState = ServiceState.SERVICE_RUNNING;
@@ -53,8 +52,6 @@ namespace ZombieService
 
         protected override void OnStop()
         {
-            Program.Host = HostUtils.TerminateHost(Program.Host);
-
             // Update the service state to Start Pending.  
             var serviceStatus = new ServiceStatus
             {
@@ -62,6 +59,8 @@ namespace ZombieService
                 dwWaitHint = 100000
             };
             SetServiceStatus(ServiceHandle, ref serviceStatus);
+
+            Program.Host = HostUtils.TerminateHost(Program.Host);
 
             // Update the service state to Running.  
             serviceStatus.dwCurrentState = ServiceState.SERVICE_RUNNING;

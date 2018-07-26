@@ -42,9 +42,21 @@ namespace Zombie
             WindowClosing = new RelayCommand(OnWindowClosing);
             WindowLoaded = new RelayCommand<Window>(OnWindowLoaded);
 
-            var gitHub = new TabItem { Content = new GitHubView { DataContext = new GitHubViewModel(model) }, Header = "GitHub" };
-            var mappings = new TabItem { Content = new MappingsView { DataContext = new MappingsViewModel(model) }, Header = "Mappings" };
-            var general = new TabItem { Content = new GeneralView { DataContext = new GeneralViewModel(model) }, Header = "General" };
+            var gitHub = new TabItem
+            {
+                Content = new GitHubView {DataContext = new GitHubViewModel(model)},
+                Header = "GitHub"
+            };
+            var mappings = new TabItem
+            {
+                Content = new MappingsView {DataContext = new MappingsViewModel(model)},
+                Header = "Mappings"
+            };
+            var general = new TabItem
+            {
+                Content = new GeneralView {DataContext = new GeneralViewModel(model)},
+                Header = "General"
+            };
             TabItems = new ObservableCollection<TabItem>
             {
                 gitHub,

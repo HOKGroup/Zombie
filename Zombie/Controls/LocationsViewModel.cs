@@ -89,10 +89,10 @@ namespace Zombie.Controls
                 ShowNewFolderButton = true
             };
             var result = dialog.ShowDialog();
-
-            LocationObject.DirectoryPath = result == DialogResult.OK
-                ? FilePathUtils.ReplaceUserSpecificPath(dialog.SelectedPath)
-                : dialog.SelectedPath;
+            if (result == DialogResult.OK)
+            {
+                LocationObject.DirectoryPath = dialog.SelectedPath;
+            }
         }
 
         #endregion

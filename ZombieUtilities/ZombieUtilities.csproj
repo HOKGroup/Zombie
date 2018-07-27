@@ -66,6 +66,7 @@
     <Compile Include="FrequencyUtils.cs" />
     <Compile Include="GitHubUtils.cs" />
     <Compile Include="GitHubWrappers.cs" />
+    <Compile Include="NlogUtils.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Client\GuiUpdate.cs" />
     <Compile Include="Client\ServiceUtils.cs" />

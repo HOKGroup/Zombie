@@ -2,12 +2,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Sockets;
 using System.ServiceProcess;
 using System.Runtime.InteropServices;
 using NLog;
 using Zombie;
 using Zombie.Utilities;
 using ZombieService.Host;
+using ZombieUtilities;
 
 #endregion
 
@@ -35,14 +38,21 @@ namespace ZombieService
             };
             SetServiceStatus(ServiceHandle, ref serviceStatus);
 
-            var arguments = Environment.GetCommandLineArgs();
-            _logger.Info("Starting Zombie. Settings: " + (arguments.Length >= 3 ? arguments[1] : "No Path"));
-
             System.Diagnostics.Debugger.Launch();
+
+            // (Konrad) Configure NLog
+            var arguments = Environment.GetCommandLineArgs();
+
+            var endpoint = arguments.Length >= 4 ? new Uri(arguments[3]) : null;
+            NlogUtils.CreateConfiguration(endpoint);
+            _logger = LogManager.GetCurrentClassLogger();
+
+            _logger.Info("Starting Zombie. \nSettings: " + (arguments.Length >= 3 ? arguments[1] : "No Path") +
+                         "\nLogEndpoint: " + endpoint);
 
             // (Konrad) Set host, settings and runner if they don't exist
             Program.Host = HostUtils.CreateHost(Program.Host);
-            Program.Settings = SettingsUtils.GetSettings(new[]{arguments[1], arguments[2]});
+            Program.Settings = SettingsUtils.GetSettings(new[] {arguments[1], arguments[2]});
             Program.Runner = new ZombieRunner(Program.Settings);
 
             // Update the service state to Running.  

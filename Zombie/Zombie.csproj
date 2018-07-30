@@ -318,6 +318,9 @@
   <ItemGroup>
     <Resource Include="Resources\gitHubZombie.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\fileMappingsZombie.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>if exist "$(TargetPath).locked" del "$(TargetPath).locked"

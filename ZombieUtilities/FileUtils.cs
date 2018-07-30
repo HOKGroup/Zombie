@@ -9,9 +9,10 @@ namespace Zombie.Utilities
         private static Logger _logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
-        /// 
+        /// Retrieves a file path to Zombie downloads directory.
+        /// Creates a new one if it doesn't exist already.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>File path to the directory.</returns>
         public static string GetZombieDownloadsDirectory()
         {
             var location = System.Reflection.Assembly.GetEntryAssembly().Location;
@@ -23,10 +24,11 @@ namespace Zombie.Utilities
         }
 
         /// <summary>
-        /// 
+        /// Copies a file. 
         /// </summary>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
+        /// <param name="source">Source file path.</param>
+        /// <param name="destination">Destination file path.</param>
+        /// <returns>True if file was copied successfully.</returns>
         public static bool Copy(string source, string destination)
         {
             if (!File.Exists(source))
@@ -48,10 +50,10 @@ namespace Zombie.Utilities
         }
 
         /// <summary>
-        /// 
+        /// Deletes a file.
         /// </summary>
-        /// <param name="filePath"></param>
-        /// <returns></returns>
+        /// <param name="filePath">File path.</param>
+        /// <returns>True if file was deleted or never existed.</returns>
         public static bool DeleteFile(string filePath)
         {
             if (!File.Exists(filePath)) return true;
@@ -69,9 +71,10 @@ namespace Zombie.Utilities
         }
 
         /// <summary>
-        /// 
+        /// Deletes a directory and all its contents.
         /// </summary>
-        /// <param name="path"></param>
+        /// <param name="path">File path to the directory.</param>
+        /// <returns>Returns True if directory was deleted or never existed.</returns>
         public static bool DeleteDirectory(string path)
         {
             if (!Directory.Exists(path))
@@ -97,10 +100,10 @@ namespace Zombie.Utilities
         }
 
         /// <summary>
-        /// 
+        /// Creates a new directory.
         /// </summary>
-        /// <param name="path"></param>
-        /// <returns></returns>
+        /// <param name="path">File path to the new directory.</param>
+        /// <returns>True if directory was created.</returns>
         public static bool CreateDirectory(string path)
         {
             try

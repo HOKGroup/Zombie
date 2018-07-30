@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net;
-using System.Net.Sockets;
 using System.ServiceProcess;
 using System.Runtime.InteropServices;
 using NLog;
@@ -46,7 +44,6 @@ namespace ZombieService
             var endpoint = arguments.Length >= 4 ? new Uri(arguments[3]) : null;
             NlogUtils.CreateConfiguration(endpoint);
             _logger = LogManager.GetCurrentClassLogger();
-
             _logger.Info("Starting Zombie. \nSettings: " + (arguments.Length >= 3 ? arguments[1] : "No Path") +
                          "\nLogEndpoint: " + endpoint);
 

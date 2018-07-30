@@ -1,10 +1,14 @@
-﻿using System;
+﻿#region References
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using NLog;
 using RestSharp;
 using ZombieUtilities;
+
+#endregion
 
 namespace Zombie.Utilities
 {
@@ -75,7 +79,7 @@ namespace Zombie.Utilities
             var repo = segments[2].TrimLastCharacter("/");
             var file = segments.Length > 3 ? segments[4] : string.Empty;
 
-            return new Dictionary<string, string>()
+            return new Dictionary<string, string>
             {
                 {"owner", owner},
                 {"repo", repo},

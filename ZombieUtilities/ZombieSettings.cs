@@ -142,10 +142,8 @@ namespace Zombie.Utilities
     /// </summary>
     public enum Frequency
     {
-#if DEBUG
         [Description("1min")]
         min1,
-#endif
         [Description("15min")]
         min15,
         [Description("30min")]

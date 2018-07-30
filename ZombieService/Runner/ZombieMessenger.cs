@@ -30,8 +30,8 @@ namespace ZombieService.Runner
                 _syncContext.Post(OnServiceCallbackEvent, new GuiUpdateEventArgs { Update = update });
             }
 
-            // (Konrad) Since there is no subscrivers to this event in this app
-            // this will result in nothing happeining. 
+            // (Konrad) Since there is no subscribers to this event in this app
+            // this will result in nothing happening. 
             private void OnServiceCallbackEvent(object state)
             {
                 var handler = ServiceCallbackEvent;
@@ -41,6 +41,11 @@ namespace ZombieService.Runner
             }
         }
 
+        /// <summary>
+        /// Broadcasts a an event to all clients that are subscribed. This will
+        /// cause GUI updates on all Zombie instances.
+        /// </summary>
+        /// <param name="update">Update message.</param>
         public void Broadcast(GuiUpdate update)
         {
             var binding = ServiceUtils.CreateClientBinding(ServiceUtils.FreeTcpPort());

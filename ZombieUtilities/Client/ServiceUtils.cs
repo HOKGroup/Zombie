@@ -1,4 +1,6 @@
-﻿using System;
+﻿#region References
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.NetworkInformation;
@@ -6,15 +8,17 @@ using System.ServiceModel;
 using System.Text;
 using System.Xml;
 
+#endregion
+
 namespace ZombieUtilities.Client
 {
     public class ServiceUtils
     {
         /// <summary>
-        /// 
+        /// Creates a new http binding for a Zombie Service client.
         /// </summary>
-        /// <param name="port"></param>
-        /// <returns></returns>
+        /// <param name="port">Port to run the client on.</param>
+        /// <returns>New DualHttpBinding.</returns>
         public static WSDualHttpBinding CreateClientBinding(int port)
         {
             var baseAddress = $"http://localhost:{port}/ZombieService/Service.svc";
@@ -52,10 +56,10 @@ namespace ZombieUtilities.Client
         }
 
         /// <summary>
-        /// 
+        /// Retrieve next available TCP Port starting from a given port number.
         /// </summary>
-        /// <param name="startingPort"></param>
-        /// <returns></returns>
+        /// <param name="startingPort">Port to start looking from.</param>
+        /// <returns>Free port number.</returns>
         public static int FreeTcpPort(int startingPort = 8000)
         {
             var portArray = new List<int>();

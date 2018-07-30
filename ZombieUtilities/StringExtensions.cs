@@ -1,5 +1,4 @@
-﻿
-namespace ZombieUtilities
+﻿namespace ZombieUtilities
 {
     public static class Extensions
     {

@@ -1,9 +1,13 @@
-﻿using System;
+﻿#region References
+
+using System;
 using System.Reflection;
 using System.ServiceModel;
 using NLog;
 using Zombie.Utilities;
 using ZombieUtilities.Client;
+
+#endregion
 
 namespace ZombieService.Host
 {

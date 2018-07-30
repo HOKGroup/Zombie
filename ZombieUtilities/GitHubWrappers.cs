@@ -1,10 +1,14 @@
-﻿using System;
+﻿#region References
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using Newtonsoft.Json;
 using Octokit;
+
+#endregion
 
 namespace Zombie.Utilities
 {

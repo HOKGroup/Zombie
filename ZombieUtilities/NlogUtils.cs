@@ -3,16 +3,17 @@ using System.Text;
 using NLog;
 using NLog.Config;
 using NLog.Targets;
-using LogLevel = NLog.LogLevel;
 
 namespace ZombieUtilities
 {
     public static class NlogUtils
     {
         /// <summary>
-        /// 
+        /// Creates a new NLog configuration. By default NLog will be configured to
+        /// write to a file in the same directory as the application. There is also
+        /// an optional REST API argument that would allow writing to a DB.
         /// </summary>
-        /// <param name="endpoint"></param>
+        /// <param name="endpoint">Optional REST API endpoint to POST to.</param>
         public static void CreateConfiguration(Uri endpoint = null)
         {
             var config = new LoggingConfiguration();

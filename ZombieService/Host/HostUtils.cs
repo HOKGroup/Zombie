@@ -9,10 +9,10 @@ namespace ZombieService.Host
         private static Logger _logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
-        /// 
+        /// Creates new instance of a service host. 
         /// </summary>
-        /// <param name="currentHost"></param>
-        /// <returns></returns>
+        /// <param name="currentHost">Host variable to be set.</param>
+        /// <returns>New instance of the host.</returns>
         public static ServiceHost CreateHost(ServiceHost currentHost = null)
         {
             try
@@ -45,10 +45,10 @@ namespace ZombieService.Host
         }
 
         /// <summary>
-        /// 
+        /// Terminates the host service when the app is shutting down.
         /// </summary>
-        /// <param name="currentHost"></param>
-        /// <returns></returns>
+        /// <param name="currentHost">Host to be terminated.</param>
+        /// <returns>current host is returned if it was not killed.</returns>
         public static ServiceHost TerminateHost(ServiceHost currentHost = null)
         {
             try

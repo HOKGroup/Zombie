@@ -5,10 +5,10 @@ namespace Zombie.Utilities
     public static class FrequencyUtils
     {
         /// <summary>
-        /// 
+        /// Converts an enum Frequency into a TimeSpan object.
         /// </summary>
-        /// <param name="frequency"></param>
-        /// <returns></returns>
+        /// <param name="frequency">Frequency object to convert.</param>
+        /// <returns>New TimeSpan object.</returns>
         public static TimeSpan TimeSpanFromFrequency(Frequency frequency)
         {
             TimeSpan interval;

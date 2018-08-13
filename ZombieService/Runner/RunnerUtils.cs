@@ -32,7 +32,7 @@ namespace ZombieService.Runner
                 const string e = "Exists";
                 var a = string.IsNullOrEmpty(settings.Address) ? nf : e;
                 var t = string.IsNullOrEmpty(settings.AccessToken) ? nf : e;
-                _logger.Error($"Connection failed! \nAddress: {a} \nAccessToken: {t}");
+                _logger.Error($"Connection failed! Address: {a} AccessToken: {t}");
                 return;
             }
 
@@ -45,7 +45,7 @@ namespace ZombieService.Runner
             try
             {
                 release = await client.Repository.Release.GetLatest(segments["owner"], segments["repo"]);
-                var currentVersion = Properties.Settings.Default["CurrentVersion"].ToString();
+                var currentVersion = RegistryUtils.GetZombieVersion();
                 if (!release.Assets.Any() || new Version(release.TagName).CompareTo(new Version(currentVersion)) <= 0)
                 {
                     PublishGuiUpdate(Program.Settings, Status.UpToDate, "Your release is up to date! Version: " + currentVersion);
@@ -218,8 +218,7 @@ namespace ZombieService.Runner
             ReleaseStreams(fileStreams);
 
             // (Konrad) We need to store the current version for comparison on next update
-            Properties.Settings.Default.CurrentVersion = release.TagName;
-            Properties.Settings.Default.Save();
+            RegistryUtils.SetZombieVersion(release.TagName);
 
             // (Konrad) Settings need to be updated with the latest one just downloaded
             newSettings.LatestRelease = new ReleaseObject(release);
@@ -237,9 +236,9 @@ namespace ZombieService.Runner
         #region Utilities
 
         /// <summary>
-        /// 
+        /// Closes any streams that we might have had created. This ensures that we don't lock any files for longer than we need to.
         /// </summary>
-        /// <param name="streams"></param>
+        /// <param name="streams">Dictionary with file name/stream that has it open.</param>
         private static void ReleaseStreams(Dictionary<string, FileStream> streams)
         {
             foreach (var s in streams.Values)
@@ -249,14 +248,14 @@ namespace ZombieService.Runner
         }
 
         /// <summary>
-        /// 
+        /// Utility method that publishes a GUI update to ZombieGUI.
         /// </summary>
-        /// <param name="settings"></param>
-        /// <param name="status"></param>
-        /// <param name="message"></param>
+        /// <param name="settings">Latest ZombieSettings file that GUI will be updated to.</param>
+        /// <param name="status">Message status type.</param>
+        /// <param name="message">String message to be displayed in the GUI.</param>
         private static void PublishGuiUpdate(ZombieSettings settings, Status status, string message)
         {
-            _logger.Info("GUI Update: \nStatus: " + status + "\nMessage: " + message);
+            _logger.Info("GUI Update: Status: " + status + " Message: " + message);
             var update = new GuiUpdate
             {
                 Settings = settings,

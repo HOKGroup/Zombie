@@ -44,8 +44,7 @@ namespace ZombieService
             var endpoint = arguments.Length >= 4 ? new Uri(arguments[3]) : null;
             NlogUtils.CreateConfiguration(endpoint);
             _logger = LogManager.GetCurrentClassLogger();
-            _logger.Info("Starting Zombie. \nSettings: " + (arguments.Length >= 3 ? arguments[1] : "No Path") +
-                         "\nLogEndpoint: " + endpoint);
+            _logger.Info("Starting Zombie. Settings: " + (arguments.Length >= 3 ? arguments[1] : "No Path") + " Endpoint: " + endpoint);
 
             // (Konrad) Set host, settings and runner if they don't exist
             Program.Host = HostUtils.CreateHost(Program.Host);

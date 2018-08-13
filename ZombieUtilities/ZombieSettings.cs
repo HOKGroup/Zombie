@@ -60,7 +60,7 @@ namespace Zombie.Utilities
             return ShouldSerialize;
         }
 
-        private Frequency _frequency = Frequency.h1;
+        private Frequency _frequency = Frequency.h2;
         [JsonConverter(typeof(StringEnumConverter))]
         public Frequency Frequency
         {
@@ -150,6 +150,10 @@ namespace Zombie.Utilities
         min30,
         [Description("1h")]
         h1,
+        [Description("2h")]
+        h2,
+        [Description("3h")]
+        h3,
         [Description("6h")]
         h6,
         [Description("12h")]

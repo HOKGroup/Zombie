@@ -15,7 +15,7 @@ namespace Zombie.Utilities
             switch (frequency)
             {
                 case Frequency.min1:
-                    interval = TimeSpan.FromSeconds(30);
+                    interval = TimeSpan.FromSeconds(60);
                     break;
                 case Frequency.min15:
                     interval = TimeSpan.FromMinutes(15);
@@ -25,6 +25,12 @@ namespace Zombie.Utilities
                     break;
                 case Frequency.h1:
                     interval = TimeSpan.FromHours(1);
+                    break;
+                case Frequency.h2:
+                    interval = TimeSpan.FromHours(2);
+                    break;
+                case Frequency.h3:
+                    interval = TimeSpan.FromHours(3);
                     break;
                 case Frequency.h6:
                     interval = TimeSpan.FromHours(6);
@@ -38,7 +44,6 @@ namespace Zombie.Utilities
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-
             return interval;
         }
     }

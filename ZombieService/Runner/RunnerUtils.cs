@@ -28,11 +28,8 @@ namespace ZombieService.Runner
         {
             if (string.IsNullOrEmpty(settings?.AccessToken) || string.IsNullOrEmpty(settings.Address))
             {
-                const string nf = "Not found";
-                const string e = "Exists";
-                var a = string.IsNullOrEmpty(settings.Address) ? nf : e;
-                var t = string.IsNullOrEmpty(settings.AccessToken) ? nf : e;
-                _logger.Error($"Connection failed! Address: {a} AccessToken: {t}");
+                var a = string.IsNullOrEmpty(settings.Address) ? "Not found" : "Exists";
+                _logger.Error($"Connection failed! Address: {a}");
                 return;
             }
 
@@ -107,8 +104,7 @@ namespace ZombieService.Runner
                                 .ToDictionary(x => x.Key, x => x.First().Value);
                             continue;
                         }
-
-                        _logger.Error("Could not get access to all ZIP contents!");
+                        
                         ReleaseStreams(fileStreams);
                         return;
                     }
@@ -151,7 +147,6 @@ namespace ZombieService.Runner
                         {
                             if(DeleteZipContents(asset, loc.DirectoryPath, fileStreams)) continue;
 
-                            _logger.Error("Could not override existing ZIP contents!");
                             ReleaseStreams(fileStreams);
                             return;
                         }
@@ -166,7 +161,6 @@ namespace ZombieService.Runner
 
                         if (FileUtils.DeleteFile(to)) continue;
 
-                        _logger.Error("Could not delete existing file!");
                         ReleaseStreams(fileStreams);
                         return;
                     }
@@ -180,7 +174,6 @@ namespace ZombieService.Runner
                         {
                             if (ExtractToDirectory(asset, loc.DirectoryPath, fileStreams)) continue;
 
-                            _logger.Error("Could not override existing ZIP contents!");
                             ReleaseStreams(fileStreams);
                             return;
                         }
@@ -200,7 +193,6 @@ namespace ZombieService.Runner
 
                         if (FileUtils.Copy(from, to)) continue;
 
-                        _logger.Error("Could not override existing file!");
                         ReleaseStreams(fileStreams);
                         return;
                     }
@@ -255,7 +247,13 @@ namespace ZombieService.Runner
         /// <param name="message">String message to be displayed in the GUI.</param>
         private static void PublishGuiUpdate(ZombieSettings settings, Status status, string message)
         {
-            _logger.Info("GUI Update: Status: " + status + " Message: " + message);
+            var msg = "Status: " + status + " Message: " + message;
+            if (string.IsNullOrEmpty(Program.RecentLog) || msg != Program.RecentLog)
+            {
+                _logger.Info(msg);
+                Program.RecentLog = msg;
+            }
+
             var update = new GuiUpdate
             {
                 Settings = settings,
@@ -407,8 +405,6 @@ namespace ZombieService.Runner
                         stream?.Close();
 
                         if (FileUtils.DeleteFile(completeFileName)) continue;
-
-                        _logger.Error("Failed to delete one of the Zipped files!");
                         return false;
                     }
 
@@ -416,8 +412,6 @@ namespace ZombieService.Runner
                     foreach (var f in folders)
                     {
                         if (FileUtils.DeleteDirectory(f)) continue;
-
-                        _logger.Error("Failed to delete one of the Zipped folders!");
                         return false;
                     }
                 }
@@ -427,11 +421,8 @@ namespace ZombieService.Runner
                 _logger.Fatal(e.Message);
                 return false;
             }
-
             return true;
         }
-
         #endregion
-
     }
 }

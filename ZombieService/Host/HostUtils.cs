@@ -32,9 +32,6 @@ namespace ZombieService.Host
                 currentHost = new ServiceHost(typeof(ZombieService), address);
                 currentHost.AddServiceEndpoint(typeof(IZombieService), binding, address);
                 currentHost.Open();
-
-
-                _logger.Info("Successfully opened Service Host at http://localhost:8000/ZombieService/Service.svc");
                 return currentHost;
             }
             catch (Exception e)
@@ -54,7 +51,6 @@ namespace ZombieService.Host
             try
             {
                 currentHost?.Close();
-                _logger.Info("Successfully closed Service Host.");
                 return null;
             }
             catch (Exception e)

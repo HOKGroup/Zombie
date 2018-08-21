@@ -10,6 +10,7 @@ namespace ZombieService
         public static ServiceHost Host;
         public static ZombieSettings Settings;
         public static ZombieRunner Runner;
+        public static string RecentLog = "";
 
         /// <summary>
         /// The main entry point for the application.

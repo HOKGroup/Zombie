@@ -16,8 +16,6 @@ namespace ZombieService
 {
     public partial class ZombieService : ServiceBase
     {
-        private static Logger _logger = LogManager.GetCurrentClassLogger();
-
         [DllImport("advapi32.dll", SetLastError = true)]
         private static extern bool SetServiceStatus(IntPtr handle, ref ServiceStatus serviceStatus);
 
@@ -36,15 +34,13 @@ namespace ZombieService
             };
             SetServiceStatus(ServiceHandle, ref serviceStatus);
 
+#if DEBUG
             System.Diagnostics.Debugger.Launch();
-
+#endif
             // (Konrad) Configure NLog
             var arguments = Environment.GetCommandLineArgs();
-
             var endpoint = arguments.Length >= 4 ? new Uri(arguments[3]) : null;
             NlogUtils.CreateConfiguration(endpoint);
-            _logger = LogManager.GetCurrentClassLogger();
-            _logger.Info("Starting Zombie. Settings: " + (arguments.Length >= 3 ? arguments[1] : "No Path") + " Endpoint: " + endpoint);
 
             // (Konrad) Set host, settings and runner if they don't exist
             Program.Host = HostUtils.CreateHost(Program.Host);

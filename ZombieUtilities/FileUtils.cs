@@ -1,6 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
+using System.Management;
 using NLog;
+using ZombieUtilities;
 
 namespace Zombie.Utilities
 {
@@ -9,17 +12,44 @@ namespace Zombie.Utilities
         private static Logger _logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="username"></param>
+        /// <returns></returns>
+        private static bool TryGetUserName(out string username)
+        {
+            var searcher = new ManagementObjectSearcher("SELECT UserName FROM Win32_ComputerSystem");
+            var collection = searcher.Get();
+            username = (string)collection.Cast<ManagementBaseObject>().First()["UserName"];
+
+            if (!username.Contains("\\"))
+                return !string.IsNullOrWhiteSpace(username);
+
+            var parts = username.Split('\\');
+            if (parts.Any()) username = parts.Last();
+
+            return !string.IsNullOrWhiteSpace(username);
+        }
+
+        /// <summary>
         /// Retrieves a file path to Zombie downloads directory.
         /// Creates a new one if it doesn't exist already.
         /// </summary>
         /// <returns>File path to the directory.</returns>
         public static string GetZombieDownloadsDirectory()
         {
-            var location = System.Reflection.Assembly.GetEntryAssembly().Location;
-            var directoryPath = Path.GetDirectoryName(location);
-            var dir = Path.Combine(directoryPath, "downloads");
+            string dir;
+            if (TryGetUserName(out var username))
+            {
+                dir = Path.Combine(@"C:\Users", username, @"AppData\Roaming", @"Zombie\downloads");
+            }
+            else
+            {
+                var location = System.Reflection.Assembly.GetEntryAssembly().Location;
+                var directoryPath = Path.GetDirectoryName(location);
+                dir = Path.Combine(directoryPath, "Zombie", "downloads");
+            }
             if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
-
             return dir;
         }
 

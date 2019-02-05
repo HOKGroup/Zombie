@@ -26,9 +26,9 @@ namespace ZombieService.Runner
         /// <param name="settings">Zombie Settings to be used to retrieve latest Release.</param>
         public static async void GetLatestRelease(ZombieSettings settings)
         {
-            if (string.IsNullOrEmpty(settings?.AccessToken) || string.IsNullOrEmpty(settings.Address))
+            if (string.IsNullOrWhiteSpace(settings?.AccessToken) || string.IsNullOrWhiteSpace(settings.Address))
             {
-                var a = string.IsNullOrEmpty(settings.Address) ? "Not found" : "Exists";
+                var a = string.IsNullOrWhiteSpace(settings.Address) ? "Not found" : "Exists";
                 _logger.Error($"Connection failed! Address: {a}");
                 return;
             }
@@ -248,7 +248,7 @@ namespace ZombieService.Runner
         private static void PublishGuiUpdate(ZombieSettings settings, Status status, string message)
         {
             var msg = "Status: " + status + " Message: " + message;
-            if (string.IsNullOrEmpty(Program.RecentLog) || msg != Program.RecentLog)
+            if (string.IsNullOrWhiteSpace(Program.RecentLog) || msg != Program.RecentLog)
             {
                 _logger.Info(msg);
                 Program.RecentLog = msg;

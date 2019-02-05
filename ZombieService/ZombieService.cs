@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.ServiceProcess;
 using System.Runtime.InteropServices;
-using NLog;
 using Zombie;
 using Zombie.Utilities;
 using ZombieService.Host;
@@ -16,6 +15,15 @@ namespace ZombieService
 {
     public partial class ZombieService : ServiceBase
     {
+        [StructLayout(LayoutKind.Sequential)]
+        public struct PROCESS_INFORMATION
+        {
+            public IntPtr hProcess;
+            public IntPtr hThread;
+            public uint dwProcessId;
+            public uint dwThreadId;
+        }
+
         [DllImport("advapi32.dll", SetLastError = true)]
         private static extern bool SetServiceStatus(IntPtr handle, ref ServiceStatus serviceStatus);
 
@@ -50,6 +58,13 @@ namespace ZombieService
             // Update the service state to Running.  
             serviceStatus.dwCurrentState = ServiceState.SERVICE_RUNNING;
             SetServiceStatus(ServiceHandle, ref serviceStatus);
+
+            // the name of the application to launch
+            var applicationName = "\"C:\\Users\\konrad.sobon\\source\\repos\\Zombie\\Zombie\\bin\\Debug\\Zombie.exe\" show";
+
+            // launch the application
+            ApplicationLoader.PROCESS_INFORMATION procInfo;
+            ApplicationLoader.StartProcessAndBypassUAC(applicationName, out procInfo);
         }
 
         protected override void OnStop()

@@ -71,7 +71,12 @@ namespace Zombie
             {
                 DataContext = vm
             };
-            view.Show();
+
+            var show = true;
+            if (e.Args.Length == 1)
+                show = e.Args[0] == "show";
+
+            vm.Startup(view, show);
 
             Messenger.Default.Send(connected
                 ? new UpdateStatus {Message = "Successfully connected to ZombieService!"}

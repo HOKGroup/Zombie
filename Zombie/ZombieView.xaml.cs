@@ -1,7 +1,4 @@
-﻿using System;
-using System.Windows;
-
-namespace Zombie
+﻿namespace Zombie
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
@@ -11,12 +8,6 @@ namespace Zombie
         public ZombieView()
         {
             InitializeComponent();
-        }
-
-        protected override void OnStateChanged(EventArgs e)
-        {
-            if (WindowState == WindowState.Minimized) Hide();
-            base.OnStateChanged(e);
         }
     }
 }

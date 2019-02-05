@@ -84,11 +84,6 @@ namespace Zombie
 
         #region Message Handlers
 
-        private void OnUpdateStatus(UpdateStatus obj)
-        {
-            Control?.Dispatcher.Invoke(() => { StatusBarManager.StatusLabel.Text = obj.Message; });
-        }
-
         /// <summary>
         /// This method handles all GUI updates coming from the ZombieService. Since we stored the
         /// reference to a control on this view model, it's a good place to set status manager updates
@@ -222,13 +217,20 @@ namespace Zombie
             Control = ((ZombieView) win).statusLabel;
         }
 
+        private void OnUpdateStatus(UpdateStatus obj)
+        {
+            Control?.Dispatcher.Invoke(() => { StatusBarManager.StatusLabel.Text = obj.Message; });
+        }
+
         #endregion
+
+        #region Startup
 
         /// <summary>
         /// Method that will by default dock the Window in a System Menu and hide the window.
         /// </summary>
         /// <param name="win">Main Control Window.</param>
-        /// <param name="show"></param>
+        /// <param name="show">If true window will be shown, otherwise only tray icon appears.</param>
         public void Startup(Window win, bool show = true)
         {
             Win = win;
@@ -261,6 +263,8 @@ namespace Zombie
 
             ni.ContextMenu = new System.Windows.Forms.ContextMenu(new[] { exit, settings });
 
+
+            Model.ShowNotification();
             if (Win == null || !UserUtils.IsAdministrator() || !show) return;
 
             Win.Show();
@@ -280,5 +284,7 @@ namespace Zombie
             Cancel = false;
             Win?.Close();
         }
+
+        #endregion
     }
 }

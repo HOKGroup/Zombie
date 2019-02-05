@@ -3,6 +3,7 @@
   <Import Project="..\packages\SourceLink.Create.GitHub.2.8.0\build\SourceLink.Create.GitHub.props" Condition="Exists('..\packages\SourceLink.Create.GitHub.2.8.0\build\SourceLink.Create.GitHub.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
+    <TargetPlatformVersion>10.0.10240.0</TargetPlatformVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{5795A217-1892-4A10-B505-625FBC6CD765}</ProjectGuid>
@@ -96,11 +97,11 @@
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Transactions" />
+    <Reference Include="System.Windows" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\MvvmLightLibs.5.3.0.0\lib\net45\System.Windows.Interactivity.dll</HintPath>
     </Reference>
-    <Reference Include="System.Xml" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -108,6 +109,8 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="Windows.Data" />
+    <Reference Include="Windows.UI" />
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -121,6 +124,7 @@
       <DependentUpon>AssetView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\AssetViewModel.cs" />
+    <Compile Include="Utilities\DesktopNotificationManagerCompat.cs" />
     <Compile Include="ZombieModel.cs" />
     <Compile Include="Controls\LocationsView.xaml.cs">
       <DependentUpon>LocationsView.xaml</DependentUpon>
@@ -145,6 +149,7 @@
     <Compile Include="Utilities\Wpf\StatusBarManager.cs" />
     <Compile Include="Utilities\Wpf\WatermarkAdorner.cs" />
     <Compile Include="Utilities\Wpf\WatermarkService.cs" />
+    <Compile Include="ZombieNotificationActivator.cs" />
     <Compile Include="ZombieViewModel.cs" />
     <Page Include="Controls\AssetView.xaml">
       <SubType>Designer</SubType>
@@ -201,6 +206,9 @@
     <None Include="app.manifest" />
     <None Include="NLog.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Package.appxmanifest">
+      <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
@@ -320,6 +328,11 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\fileMappingsZombie.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\zombie_32x32.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

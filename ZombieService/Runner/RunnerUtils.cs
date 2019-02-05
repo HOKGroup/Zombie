@@ -222,7 +222,7 @@ namespace ZombieService.Runner
             Program.Settings = newSettings;
 
             // (Konrad) Publish to any open GUIs
-            PublishGuiUpdate(newSettings, Status.Succeeded, "Successfully updated to version: " + release.TagName);
+            PublishGuiUpdate(newSettings, Status.Succeeded, "Successfully updated to Version: " + release.TagName);
         }
 
         #region Utilities

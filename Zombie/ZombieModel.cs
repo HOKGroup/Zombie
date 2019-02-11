@@ -38,15 +38,19 @@ namespace Zombie.Controls
             Settings = settings;
         }
 
-        public void ShowNotification()
+        /// <summary>
+        /// Displays toast notification using the MS Windows toast service.
+        /// </summary>
+        /// <param name="message">Message to show to the user.</param>
+        public void ShowNotification(string message)
         {
             // Specify message
             var toastXml = ToastNotificationManager.GetTemplateContent(ToastTemplateType.ToastImageAndText04);
             var stringElements = toastXml.GetElementsByTagName("text");
-            stringElements[1].AppendChild(toastXml.CreateTextNode("Revit plugins are being updated. Please wait for the update to finish before launching Revit."));
+            stringElements[1].AppendChild(toastXml.CreateTextNode(message));
 
             // Specify the absolute path to an image
-            var dir = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Resources", "zombie_32x32.png");
+            var dir = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Resources", "zombie_64x64.png");
             var imagePath = "file:///" + dir;
             var imageElements = toastXml.GetElementsByTagName("image");
             imageElements[0].Attributes.GetNamedItem("src").NodeValue = imagePath;

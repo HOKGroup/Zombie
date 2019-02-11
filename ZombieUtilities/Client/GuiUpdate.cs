@@ -13,6 +13,7 @@ namespace ZombieUtilities.Client
     {
         Failed,
         Succeeded,
-        UpToDate
+        UpToDate,
+        Notification
     }
 }

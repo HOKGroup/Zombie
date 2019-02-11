@@ -330,8 +330,8 @@
     <Resource Include="Resources\fileMappingsZombie.png" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\zombie_32x32.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <EmbeddedResource Include="Resources\zombie_64x64.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

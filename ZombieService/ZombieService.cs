@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using System.ServiceProcess;
 using System.Runtime.InteropServices;
 using Zombie;
@@ -15,15 +17,6 @@ namespace ZombieService
 {
     public partial class ZombieService : ServiceBase
     {
-        [StructLayout(LayoutKind.Sequential)]
-        public struct PROCESS_INFORMATION
-        {
-            public IntPtr hProcess;
-            public IntPtr hThread;
-            public uint dwProcessId;
-            public uint dwThreadId;
-        }
-
         [DllImport("advapi32.dll", SetLastError = true)]
         private static extern bool SetServiceStatus(IntPtr handle, ref ServiceStatus serviceStatus);
 
@@ -58,13 +51,17 @@ namespace ZombieService
             // Update the service state to Running.  
             serviceStatus.dwCurrentState = ServiceState.SERVICE_RUNNING;
             SetServiceStatus(ServiceHandle, ref serviceStatus);
-
-            // the name of the application to launch
-            var applicationName = "\"C:\\Users\\konrad.sobon\\source\\repos\\Zombie\\Zombie\\bin\\Debug\\Zombie.exe\" show";
-
+#if DEBUG
+            var dir = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), @"..\..\..\"));
+            var zombiePath = Path.Combine(dir, @"Zombie\bin\debug\Zombie.exe");
+#else
+            var dir = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), @"..\");
+            var zombiePath = Path.Combine(dir, @"Zombie\Zombie.exe");
+#endif
             // launch the application
+            var commandPath = "\"" + zombiePath + "\" hide";
             ApplicationLoader.PROCESS_INFORMATION procInfo;
-            ApplicationLoader.StartProcessAndBypassUAC(applicationName, out procInfo);
+            ApplicationLoader.StartProcessAndBypassUAC(commandPath, out procInfo);
         }
 
         protected override void OnStop()

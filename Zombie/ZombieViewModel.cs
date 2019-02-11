@@ -75,13 +75,6 @@ namespace Zombie
             Messenger.Default.Register<UpdateStatus>(this, OnUpdateStatus);
         }
 
-        private static void OnStateChanged(Window win)
-        {
-            if (win == null) return;
-            if (win.WindowState == WindowState.Minimized)
-                win.Hide();
-        }
-
         #region Message Handlers
 
         /// <summary>
@@ -106,6 +99,10 @@ namespace Zombie
                     break;
                 case Status.UpToDate:
                     Model.Settings = obj.Settings;
+                    Control?.Dispatcher.Invoke(() => { StatusBarManager.StatusLabel.Text = obj.Message; });
+                    break;
+                case Status.Notification:
+                    Model.ShowNotification(obj.Message);
                     Control?.Dispatcher.Invoke(() => { StatusBarManager.StatusLabel.Text = obj.Message; });
                     break;
                 default:
@@ -217,6 +214,13 @@ namespace Zombie
             Control = ((ZombieView) win).statusLabel;
         }
 
+        private static void OnStateChanged(Window win)
+        {
+            if (win == null) return;
+            if (win.WindowState == WindowState.Minimized)
+                win.Hide();
+        }
+
         private void OnUpdateStatus(UpdateStatus obj)
         {
             Control?.Dispatcher.Invoke(() => { StatusBarManager.StatusLabel.Text = obj.Message; });
@@ -263,8 +267,6 @@ namespace Zombie
 
             ni.ContextMenu = new System.Windows.Forms.ContextMenu(new[] { exit, settings });
 
-
-            Model.ShowNotification();
             if (Win == null || !UserUtils.IsAdministrator() || !show) return;
 
             Win.Show();

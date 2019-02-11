@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+using Octokit;
+using Zombie.Utilities;
 
 namespace ZombieUpdater
 {
@@ -12,11 +9,17 @@ namespace ZombieUpdater
     {
         private static void Main(string[] args)
         {
-            var counter = 0;
-            while (counter < 5)
+            ExecuteUpdate();
+        }
+
+        private static async void ExecuteUpdate()
+        {
+            var client = new GitHubClient(new ProductHeaderValue("Zombie"));
+            var release = await client.Repository.Release.GetLatest("HOKGroup", "Zombie");
+            var currentVersion = RegistryUtils.GetVersion(VersionType.Zombie);
+            if (!release.Assets.Any() || new Version(release.TagName).CompareTo(new Version(currentVersion)) <= 0)
             {
-                Thread.Sleep(10000);
-                counter++;
+                return;
             }
         }
     }

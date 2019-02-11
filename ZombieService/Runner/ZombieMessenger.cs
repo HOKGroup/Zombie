@@ -53,11 +53,11 @@ namespace ZombieService.Runner
             var context = new InstanceContext(new ZombieServiceCallback());
             var client = new ZombieServiceClient(context, binding, endpoint);
 
-            client.Open();
-            client.Subscribe();
-
             try
             {
+                client.Open();
+                client.Subscribe();
+
                 client.PublishGuiUpdate(update);
                 client.Unsubscribe();
                 client.Close();

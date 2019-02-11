@@ -4,12 +4,20 @@ using NLog;
 
 namespace Zombie.Utilities
 {
+    public enum VersionType
+    {
+        Zombie,
+        Revit
+    }
+
     public static class RegistryUtils
     {
         private static Logger _logger = LogManager.GetCurrentClassLogger();
         private const string defaultVersion = "0.0.0.0";
         private const string keyName = "CurrentVersion";
         private const string keyPath = @"SOFTWARE\Zombie";
+
+        private const string zombieKeyName = "ZombieVersion";
 
         /// <summary>
         /// Sets the Startup path and arguments for ZombieService.
@@ -32,21 +40,34 @@ namespace Zombie.Utilities
         /// Retrieves current version of Zombie from the Registry.
         /// </summary>
         /// <returns>Current Version of Zombie.</returns>
-        public static string GetZombieVersion()
+        public static string GetVersion(VersionType versionType)
         {
             try
             {
+                string kName;
+                switch (versionType)
+                {
+                    case VersionType.Zombie:
+                        kName = zombieKeyName;
+                        break;
+                    case VersionType.Revit:
+                        kName = keyName;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(versionType), versionType, null);
+                }
+
                 var key = Registry.LocalMachine.OpenSubKey(keyPath, true);
                 if (key == null)
                 {
                     // (Konrad) Key doesn't exist let's create it.
                     key = Registry.LocalMachine.CreateSubKey(keyPath);
-                    key.SetValue(keyName, defaultVersion);
+                    key.SetValue(kName, defaultVersion);
                     key.Close();
                     return defaultVersion;
                 }
 
-                var version = key.GetValue(keyName) as string;
+                var version = key.GetValue(kName) as string;
                 key.Close();
                 return string.IsNullOrEmpty(version) ? defaultVersion : version;
             }

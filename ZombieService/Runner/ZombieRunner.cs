@@ -20,12 +20,12 @@ namespace Zombie
                 try
                 {
                     RunnerUtils.GetLatestRelease(settings);
+                    RunnerUtils.GetLatestZombie();
                 }
                 catch (Exception e)
                 {
                     _logger.Fatal(e.Message);
                 }
-                
             }, null, TimeSpan.Zero, interval);
         }
     }

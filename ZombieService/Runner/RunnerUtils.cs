@@ -7,6 +7,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Threading;
+using Microsoft.Win32.TaskScheduler;
 using NLog;
 using Octokit;
 using Zombie.Utilities;
@@ -20,6 +21,51 @@ namespace ZombieService.Runner
     public static class RunnerUtils
     {
         private static Logger _logger = LogManager.GetCurrentClassLogger();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static async void GetLatestZombie()
+        {
+            try
+            {
+                var client = new GitHubClient(new ProductHeaderValue("Zombie"));
+                var release = await client.Repository.Release.GetLatest("HOKGroup", "Zombie");
+                var currentVersion = RegistryUtils.GetVersion(VersionType.Zombie);
+                if (!release.Assets.Any() || new Version(release.TagName).CompareTo(new Version(currentVersion)) <= 0)
+                {
+                    return;
+                }
+
+                // (Konrad) Schedule an update.
+                using (var ts = new TaskService())
+                {
+                    ts.Execute(@"C:\Users\konrad.sobon\source\repos\Zombie\ZombieUpdater\bin\Debug\ZombieUpdater.exe")
+                        .Once()
+                        .Starting(DateTime.Now.AddMinutes(2))
+                        .AsTask("Test");
+                }
+
+                // (Konrad) Check for Zombie UI Running and terminate it.
+                if (IsProcessRunning("Zombie"))
+                {
+                    foreach (var p in Process.GetProcesses())
+                    {
+                        if (!p.ProcessName.Equals("Zombie", StringComparison.OrdinalIgnoreCase)) continue;
+
+                        p.Kill();
+                        break;
+                    }
+                }
+
+                // (Konrad) Terminate current ZombieService.
+                Program.Service.Stop();
+            }
+            catch (Exception e)
+            {
+                _logger.Fatal(e.Message);
+            }
+        }
 
         /// <summary>
         /// Method that retrieves the latest release from GitHub.
@@ -53,7 +99,7 @@ namespace ZombieService.Runner
             try
             {
                 release = await client.Repository.Release.GetLatest(segments["owner"], segments["repo"]);
-                var currentVersion = RegistryUtils.GetZombieVersion();
+                var currentVersion = RegistryUtils.GetVersion(VersionType.Revit);
                 if (!release.Assets.Any() || new Version(release.TagName).CompareTo(new Version(currentVersion)) <= 0)
                 {
                     PublishGuiUpdate(Program.Settings, Status.UpToDate, "Your release is up to date! Version: " + currentVersion);

@@ -11,15 +11,17 @@ namespace ZombieService
         public static ZombieSettings Settings;
         public static ZombieRunner Runner;
         public static string RecentLog = "";
+        public static ZombieService Service;
 
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
         public static void Main(string[] args)
         {
+            Service = new ZombieService(args);
             var ServicesToRun = new ServiceBase[]
             {
-                new ZombieService(args)
+                Service
             };
             ServiceBase.Run(ServicesToRun);
         }

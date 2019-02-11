@@ -2,6 +2,8 @@
 {
     public static class Extensions
     {
+        #region string.TrimLastCharacter
+
         /// <summary>
         /// Extension for String so that it removes the last character if it matches input.
         /// </summary>
@@ -16,5 +18,7 @@
                     ? str.TrimEnd(str[str.Length - 1])
                     : str;
         }
+
+        #endregion
     }
 }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -26,6 +27,16 @@ namespace ZombieService.Runner
         /// <param name="settings">Zombie Settings to be used to retrieve latest Release.</param>
         public static async void GetLatestRelease(ZombieSettings settings)
         {
+            if (IsProcessRunning("Revit"))
+            {
+                _logger.Error("Update failed. Revit is running.");
+
+                // (Konrad) Since release was not up to date. Let's show a notification to user that update is in progress. 
+                PublishGuiUpdate(Program.Settings, Status.Notification, "Update failed. Revit is running.");
+
+                return;
+            }
+
             if (string.IsNullOrWhiteSpace(settings?.AccessToken) || string.IsNullOrWhiteSpace(settings.Address))
             {
                 var a = string.IsNullOrWhiteSpace(settings.Address) ? "Not found" : "Exists";
@@ -281,6 +292,24 @@ namespace ZombieService.Runner
             {
                 s.Close();
             }
+        }
+
+        /// <summary>
+        /// Checks if process with a given name is currently running.
+        /// </summary>
+        /// <param name="name">Name of the process to check for.</param>
+        /// <returns>True if process is running, otherwise false.</returns>
+        private static bool IsProcessRunning(string name)
+        {
+            foreach (var clsProcess in Process.GetProcesses())
+            {
+                if (clsProcess.ProcessName.Equals(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>

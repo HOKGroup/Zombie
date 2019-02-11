@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Package
+  xmlns:com="http://schemas.microsoft.com/appx/manifest/com/windows10"
+  xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+  IgnorableNamespaces="... com desktop">
+  <Applications>
+    <Application>
+      <Extensions>
+
+        <!--Register COM CLSID LocalServer32 registry key-->
+        <com:Extension Category="windows.comServer">
+          <com:ComServer>
+            <com:ExeServer Executable="Zombie\Zombie.exe" Arguments="-ToastActivated" DisplayName="Zombie">
+              <com:Class Id="6cd2f896-4216-4014-a033-1f0b9e2a1cba" DisplayName="Zombie"/>
+            </com:ExeServer>
+          </com:ComServer>
+        </com:Extension>
+
+        <!--Specify which CLSID to activate when toast clicked-->
+        <desktop:Extension Category="windows.toastNotificationActivation">
+          <desktop:ToastNotificationActivation ToastActivatorCLSID="6cd2f896-4216-4014-a033-1f0b9e2a1cba" />
+        </desktop:Extension>
+
+      </Extensions>
+    </Application>
+  </Applications>
+</Package>

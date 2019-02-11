@@ -74,6 +74,7 @@
     <Compile Include="RegistryUtils.cs" />
     <Compile Include="SettingsUtils.cs" />
     <Compile Include="StringExtensions.cs" />
+    <Compile Include="UserUtils.cs" />
     <Compile Include="ZombieSettings.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -98,6 +98,9 @@ namespace Zombie.Controls
                         ProcessUpToDate(obj.Settings);
                     }));
                     return;
+                case Status.Notification:
+                    // (Konrad) This can be ignored here since we are not updating the UI.
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }

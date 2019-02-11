@@ -2,12 +2,17 @@
 
 using System;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using Windows.UI.Notifications;
+using DesktopNotifications;
 using GalaSoft.MvvmLight.Messaging;
 using Newtonsoft.Json;
 using NLog;
 using Octokit;
 using Zombie.Utilities;
+using Formatting = Newtonsoft.Json.Formatting;
 
 #endregion
 
@@ -31,6 +36,30 @@ namespace Zombie.Controls
         public ZombieModel(ZombieSettings settings)
         {
             Settings = settings;
+        }
+
+        /// <summary>
+        /// Displays toast notification using the MS Windows toast service.
+        /// </summary>
+        /// <param name="message">Message to show to the user.</param>
+        public void ShowNotification(string message)
+        {
+            // Specify message
+            var toastXml = ToastNotificationManager.GetTemplateContent(ToastTemplateType.ToastImageAndText04);
+            var stringElements = toastXml.GetElementsByTagName("text");
+            stringElements[1].AppendChild(toastXml.CreateTextNode(message));
+
+            // Specify the absolute path to an image
+            var dir = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "Resources", "zombie_64x64.png");
+            var imagePath = "file:///" + dir;
+            var imageElements = toastXml.GetElementsByTagName("image");
+            imageElements[0].Attributes.GetNamedItem("src").NodeValue = imagePath;
+
+            // Create the toast notification
+            var toast = new ToastNotification(toastXml);
+
+            // Show it
+            DesktopNotificationManagerCompat.CreateToastNotifier().Show(toast);
         }
 
         /// <summary>

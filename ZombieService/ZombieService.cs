@@ -2,9 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using System.ServiceProcess;
 using System.Runtime.InteropServices;
-using NLog;
 using Zombie;
 using Zombie.Utilities;
 using ZombieService.Host;
@@ -50,6 +51,17 @@ namespace ZombieService
             // Update the service state to Running.  
             serviceStatus.dwCurrentState = ServiceState.SERVICE_RUNNING;
             SetServiceStatus(ServiceHandle, ref serviceStatus);
+#if DEBUG
+            var dir = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), @"..\..\..\"));
+            var zombiePath = Path.Combine(dir, @"Zombie\bin\debug\Zombie.exe");
+#else
+            var dir = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), @"..\");
+            var zombiePath = Path.Combine(dir, @"Zombie\Zombie.exe");
+#endif
+            // launch the application
+            var commandPath = "\"" + zombiePath + "\" hide";
+            ApplicationLoader.PROCESS_INFORMATION procInfo;
+            ApplicationLoader.StartProcessAndBypassUAC(commandPath, out procInfo);
         }
 
         protected override void OnStop()

@@ -4,7 +4,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <ProductVersion>3.10</ProductVersion>
-    <ProjectGuid>8140f6a5-d1ed-4f5d-98f6-aead8dc4338a</ProjectGuid>
+    <ProjectGuid>921ade0a-775b-4aa8-8a34-2770aff0f93f</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
     <OutputName>ZombieInstaller</OutputName>
     <OutputType>Package</OutputType>

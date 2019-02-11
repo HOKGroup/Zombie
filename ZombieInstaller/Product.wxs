@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-	<Product Id="*" Name="ZombieInstaller" Language="1033" Version="1.0.0.0" Manufacturer="" UpgradeCode="91c429cc-fb4c-4009-b02e-8ab0c2576604">
+	<Product Id="*" Name="ZombieInstaller" Language="1033" Version="1.0.0.0" Manufacturer="" UpgradeCode="41627e74-9597-4641-9cd1-52de145ce7f6">
 		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
 
 		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />

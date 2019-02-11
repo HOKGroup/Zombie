@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <Fragment Id="SplashDlg">
+    <UI Id="SplashDlg">
+      <Dialog Id="SplashForm" X="50" Y="50" Width="373" Height="287" Title="[ProductName]">
+        <Control Id="NextButton" Type="PushButton" X="300" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}&amp;Next &gt;" TabSkip="no" Default="yes">
+          <Publish Event="EndDialog" Value="Return"><![CDATA[SplashForm_NextArgs=""]]></Publish>
+          <Publish Event="NewDialog" Value="[SplashForm_NextArgs]"><![CDATA[SplashForm_NextArgs<>""]]></Publish>
+        </Control>
+        <Control Id="CancelButton" Type="PushButton" X="156" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}Cancel" TabSkip="no" Cancel="yes">
+          <Publish Event="SpawnDialog" Value="Cancel" />
+        </Control>
+        <Control Id="PreviousButton" Type="PushButton" X="228" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}&lt; &amp;Back" TabSkip="no">
+          <Condition Action="disable"><![CDATA[SplashForm_PrevArgs=""]]></Condition>
+          <Condition Action="enable"><![CDATA[SplashForm_PrevArgs<>""]]></Condition>
+          <Publish Event="NewDialog" Value="[SplashForm_PrevArgs]"><![CDATA[SplashForm_PrevArgs<>""]]></Publish>
+        </Control>
+        <Control Id="Line1" Type="Line" X="0" Y="252" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
+        <Control Id="SplashBmp" Type="Text" X="6" Y="6" Width="360" Height="240" TabSkip="yes" Sunken="yes" Disabled="yes" />
+      </Dialog>
+    </UI>
+    <InstallUISequence>
+      <Show Dialog="SplashForm" Sequence="1001"><![CDATA[Installed="" AND NOT RESUME]]></Show>
+    </InstallUISequence>
+  </Fragment>
+</Wix>

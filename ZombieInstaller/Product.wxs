@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Product Id="*" Name="Zombie" Language="1033" Version="1.0.0.0" Manufacturer="HOK" UpgradeCode="8dc1f22c-f9de-48be-9f6e-e97f6d4fc9d9">
-    <Package InstallerVersion="200" Compressed="yes" InstallPrivileges="elevated" />
+    <Package InstallerVersion="200" Compressed="yes" InstallPrivileges="elevated" Manufacturer="HOK" Comments="Zombie is a set of tools that helps manage GitHub releases." Description="Zombie" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://github.com/HOKGroup/Zombie/releases" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/HOKGroup/Zombie/issues" />
+    <Property Id="ARPHELPLINK" Value="https://www.hok.com/" />
+    <CustomAction Id="VSDCA_AllUsers" Property="ALLUSERS" Value="2" Execute="firstSequence" />
+    <CustomAction Id="PreventDowngrading" Error="Newer version already installed." />
+    <Upgrade Id="8dc1f22c-f9de-48be-9f6e-e97f6d4fc9d9">
+      <UpgradeVersion Maximum="1.0.0.0" Property="OLDPRODUCTFOUND" OnlyDetect="no" IncludeMinimum="yes" IncludeMaximum="no" Language="1033" />
+    </Upgrade>
+    <Property Id="ARPCOMMENTS" Value="Zombie is a set of tools that helps manage GitHub releases." />
+    <Property Id="ARPCONTACT" Value="HOK" />
     <MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
-    <MediaTemplate />
-
-    <Property Id="ACCESS_TOKEN"/>
-    <Property Id="WEB_SERVICE_ENDPOINT"/>
-    <Property Id="SETTINGS_PATH"/>
-
+    <MediaTemplate EmbedCab="yes" />
+    <Property Id="ACCESS_TOKEN" />
+    <Property Id="WEB_SERVICE_ENDPOINT" />
+    <Property Id="SETTINGS_PATH" />
     <Feature Id="ProductFeature" Title="ZombieInstaller" Level="1">
       <ComponentRef Id="some_random_name" />
       <ComponentRef Id="comp_6CF91AB9_C93D_409B_95BB_0E2EE2815D35" />
@@ -29,6 +37,8 @@
       <ComponentRef Id="comp_0E444F2A_7104_4542_A5ED_705CAE4ED23D" />
       <ComponentRef Id="comp_312F6137_ADA8_4530_A1C6_5F31CF71C914" />
       <ComponentGroupRef Id="RegistryGroup" />
+      <ComponentRef Id="comp_0A4C46FB_A5D7_4377_81C8_5B157E5BE800" />
+      <ComponentRef Id="comp_C73B52DE_1D61_413B_BBA3_B9DB496FDC64" />
     </Feature>
     <InstallUISequence>
       <Custom Action="ERRCA_UIANDADVERTISED" Sequence="5"><![CDATA[ProductState=1]]></Custom>
@@ -39,6 +49,9 @@
       <Show Dialog="MaintenanceForm" Sequence="999"><![CDATA[Installed<>""]]></Show>
       <Show Dialog="ResumeForm" Sequence="998"><![CDATA[Installed="" AND RESUME]]></Show>
       <Show Dialog="FinishedForm" OnExit="success" />
+      <Custom Action="PreventDowngrading" After="FindRelatedProducts"><![CDATA[NEWPRODUCTFOUND]]></Custom>
+      <FindRelatedProducts Sequence="200" />
+      <Custom Action="VSDCA_AllUsers" After="CostInitialize"><![CDATA[Installed="" AND NOT RESUME AND ALLUSERS=1]]></Custom>
     </InstallUISequence>
     <CustomAction Id="VSDCA_FolderForm_AllUsers" Property="FolderForm_AllUsers" Value="ALL" />
     <CustomAction Id="DIRCA_TARGETDIR" Property="TARGETDIR" Value="[ProgramFilesFolder][Manufacturer]\[ProductName]" Execute="firstSequence" />
@@ -56,10 +69,14 @@
       </WriteRegistryValues>
       <!--Install Service is 5800. This ensures that we override the registry values after the install.-->
       <ScheduleReboot After="InstallFinalize">REMOVE="ALL"</ScheduleReboot>
+      <Custom Action="PreventDowngrading" After="FindRelatedProducts"><![CDATA[NEWPRODUCTFOUND]]></Custom>
+      <Custom Action="VSDCA_AllUsers" After="CostInitialize"><![CDATA[Installed="" AND NOT RESUME AND ALLUSERS=1]]></Custom>
     </InstallExecuteSequence>
-    <UIRef Id="SplashDlg" />
     <UIRef Id="FinishedDlg" />
     <UIRef Id="ProgressDlg" />
+    <UIRef Id="CustomText3Dlg" />
+    <UIRef Id="WelcomeDlg" />
+    <UIRef Id="LicenseDlg" />
     <UI Id="Base">
       <Property Id="VSDNETURLMSG" Value="This setup requires the .NET Framework version [1].  Please install the .NET Framework and run this setup again.  The .NET Framework can be obtained from the web.  Would you like to do this now?" />
       <Property Id="VSDIISMSG" Value="This setup requires Internet Information Server 5.1 or higher and Windows XP or higher.  This setup cannot be installed on Windows 2000.  Please install Internet Information Server or a newer operating system and run this setup again." />
@@ -179,7 +196,8 @@
       </Dialog>
     </UI>
     <UI Id="UserInterface">
-      <Binary Id="DefBannerBitmap" SourceFile="Resources\WiXDefBannerBitmap.bmp" />
+      <Binary Id="_21EF35DE_8220_4128_A814_3CF46709E292" SourceFile="..\_graphics\PNG\banner.bmp" />
+      <Binary Id="_C26F5196_7EC0_4B36_B93A_6C8F8414A44D" SourceFile="Resources\banner.bmp" />
       <Property Id="DefaultUIFont" Value="VsdDefaultUIFont.524F4245_5254_5341_4C45_534153783400" />
       <TextStyle Id="VsdDefaultUIFont.524F4245_5254_5341_4C45_534153783400" FaceName="MS Sans Serif" Size="9" Red="0" Green="0" Blue="0" />
       <UIText Id="MenuLocal"><![CDATA[Will be installed on local hard drive]]></UIText>
@@ -246,7 +264,7 @@
         </Control>
         <Control Id="CancelButton" Type="PushButton" X="156" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}Cancel" TabSkip="no" Disabled="yes" />
         <Control Id="PreviousButton" Type="PushButton" X="228" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}&lt; &amp;Back" TabSkip="no" Disabled="yes" />
-        <Control Id="BannerBmp" Type="Bitmap" X="0" Y="0" Width="375" Height="52" Text="DefBannerBitmap" TabSkip="no" Disabled="yes" />
+        <Control Id="BannerBmp" Type="Bitmap" X="0" Y="0" Width="375" Height="52" Text="_C26F5196_7EC0_4B36_B93A_6C8F8414A44D" TabSkip="no" Disabled="yes" />
         <Control Id="Line1" Type="Line" X="0" Y="52" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
         <Control Id="Line2" Type="Line" X="0" Y="252" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
         <Control Id="BannerText" Type="Text" X="9" Y="9" Width="306" Height="33" Text="{\VSI_MS_Sans_Serif16.0_1_0}Installation Interrupted" TabSkip="yes" Transparent="yes" NoPrefix="yes" />
@@ -265,7 +283,7 @@
         </Control>
         <Control Id="CancelButton" Type="PushButton" X="156" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}Cancel" TabSkip="no" Disabled="yes" />
         <Control Id="PreviousButton" Type="PushButton" X="228" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}&lt; &amp;Back" TabSkip="no" Disabled="yes" />
-        <Control Id="BannerBmp" Type="Bitmap" X="0" Y="0" Width="375" Height="52" Text="DefBannerBitmap" TabSkip="no" Disabled="yes" />
+        <Control Id="BannerBmp" Type="Bitmap" X="0" Y="0" Width="375" Height="52" Text="_C26F5196_7EC0_4B36_B93A_6C8F8414A44D" TabSkip="no" Disabled="yes" />
         <Control Id="Line1" Type="Line" X="0" Y="52" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
         <Control Id="Line2" Type="Line" X="0" Y="252" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
         <Control Id="BannerText" Type="Text" X="9" Y="9" Width="306" Height="33" Text="{\VSI_MS_Sans_Serif16.0_1_0}Installation Incomplete" TabSkip="yes" Transparent="yes" NoPrefix="yes" />
@@ -291,7 +309,7 @@
           <Publish Event="SpawnDialog" Value="Cancel" />
         </Control>
         <Control Id="PreviousButton" Type="PushButton" X="228" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}&lt; &amp;Back" TabSkip="no" Disabled="yes" />
-        <Control Id="BannerBmp" Type="Bitmap" X="0" Y="0" Width="375" Height="52" Text="DefBannerBitmap" TabSkip="no" Disabled="yes" />
+        <Control Id="BannerBmp" Type="Bitmap" X="0" Y="0" Width="375" Height="52" Text="_C26F5196_7EC0_4B36_B93A_6C8F8414A44D" TabSkip="no" Disabled="yes" />
         <Control Id="Line1" Type="Line" X="0" Y="52" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
         <Control Id="Line2" Type="Line" X="0" Y="252" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
         <Control Id="BannerText" Type="Text" X="9" Y="9" Width="306" Height="33" Text="{\VSI_MS_Sans_Serif16.0_1_0}Welcome to the [ProductName] Setup Wizard" TabSkip="yes" Transparent="yes" NoPrefix="yes" />
@@ -305,7 +323,7 @@
           <Publish Event="SpawnDialog" Value="Cancel" />
         </Control>
         <Control Id="PreviousButton" Type="PushButton" X="228" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}&lt; &amp;Back" TabSkip="no" Disabled="yes" />
-        <Control Id="BannerBmp" Type="Bitmap" X="0" Y="0" Width="375" Height="52" Text="DefBannerBitmap" TabSkip="no" Disabled="yes" />
+        <Control Id="BannerBmp" Type="Bitmap" X="0" Y="0" Width="375" Height="52" Text="_C26F5196_7EC0_4B36_B93A_6C8F8414A44D" TabSkip="no" Disabled="yes" />
         <Control Id="Line1" Type="Line" X="0" Y="52" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
         <Control Id="Line2" Type="Line" X="0" Y="252" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
         <Control Id="BannerText" Type="Text" X="9" Y="9" Width="306" Height="33" Text="{\VSI_MS_Sans_Serif16.0_1_0}Welcome to the [ProductName] Setup Wizard" TabSkip="yes" Transparent="yes" NoPrefix="yes" />
@@ -317,7 +335,7 @@
         </Control>
         <Control Id="CancelButton" Type="PushButton" X="156" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}Cancel" TabSkip="no" Disabled="yes" />
         <Control Id="PreviousButton" Type="PushButton" X="228" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}&lt; &amp;Back" TabSkip="no" Disabled="yes" />
-        <Control Id="BannerBmp" Type="Bitmap" X="0" Y="0" Width="375" Height="52" Text="DefBannerBitmap" TabSkip="no" Disabled="yes" />
+        <Control Id="BannerBmp" Type="Bitmap" X="0" Y="0" Width="375" Height="52" Text="_C26F5196_7EC0_4B36_B93A_6C8F8414A44D" TabSkip="no" Disabled="yes" />
         <Control Id="Line1" Type="Line" X="0" Y="52" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
         <Control Id="Line2" Type="Line" X="0" Y="252" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
         <Control Id="BannerText" Type="Text" X="9" Y="9" Width="306" Height="33" Text="{\VSI_MS_Sans_Serif16.0_1_0}Installation Complete" TabSkip="yes" Transparent="yes" NoPrefix="yes" />
@@ -325,7 +343,7 @@
           <Condition Action="show"><![CDATA[REMOVE<>""]]></Condition>
           <Condition Action="hide"><![CDATA[REMOVE=""]]></Condition>
         </Control>
-        <Control Id="UpdateText" Type="Text" X="9" Y="216" Width="354" Height="36" Text="{\VSI_MS_Sans_Serif13.0_0_0}Please use Windows Update to check for any critical updates to the .NET Framework." TabSkip="yes" NoPrefix="yes">
+        <Control Id="UpdateText" Type="Text" X="9" Y="216" Width="354" Height="36" Text="{\VSI_MS_Sans_Serif13.0_0_0}Please visit https://github.com/HOKGroup/Zombie for the latest releases and updates!" TabSkip="yes" NoPrefix="yes">
           <Condition Action="show"><![CDATA[REMOVE=""]]></Condition>
           <Condition Action="hide"><![CDATA[REMOVE<>""]]></Condition>
         </Control>
@@ -338,6 +356,12 @@
   </Product>
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
+      <Component Id="comp_0A4C46FB_A5D7_4377_81C8_5B157E5BE800" Guid="043B09A9-2512-4E1B-B51E-B8F1A48BA577" Permanent="no" SharedDllRefCount="no" Transitive="no">
+        <File Id="_0EE84DC5_9648_47EC_8A45_EB33A646E3DB" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" Name="banner.bmp" Source="..\_graphics\PNG\banner.bmp" KeyPath="yes" />
+      </Component>
+      <Component Id="comp_C73B52DE_1D61_413B_BBA3_B9DB496FDC64" Guid="E6BAEC4A-8260-42D4-9E6E-DEA299AC14D0" Permanent="no" SharedDllRefCount="no" Transitive="no">
+        <File Id="_50D5AC4B_D84A_4226_A5C5_1AE709A7976E" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" Name="license.rtf" Source="..\_info\license.rtf" KeyPath="yes" />
+      </Component>
       <Directory Id="ProgramFilesFolder">
         <Directory Id="dir_7D3FFD5C_AD3E_424E_BB00_C5B007EE2648" Name="Zombie">
           <Component Id="comp_25767506_1877_467F_8788_26BE84C366FD" Guid="312DA3DD-3634-430C-BD1C-2D95D31BC144" Permanent="no" SharedDllRefCount="no" Transitive="no">

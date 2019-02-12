@@ -27,7 +27,8 @@
     <Folder Include="Resources\" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Resources\WiXDefBannerBitmap.bmp" />
+    <Content Include="Resources\banner.bmp" />
+    <Content Include="Resources\license.rtf" />
     <Content Include="Resources\WiXNewFolderBtn.ico" />
     <Content Include="Resources\WiXUpFolderBtn.ico" />
   </ItemGroup>
@@ -45,6 +46,7 @@
   <Target Name="EnsureWixToolsetInstalled" Condition=" !Exists('$(WixTargetsPath)') ">
     <Error Text="The WiX Toolset v4 build tools must be installed to build this project. To download the WiX Toolset v4, see http://wixtoolset.org/releases/" />
   </Target>
+  <Target Name="AfterBuild" />
   <!--
 	To modify your build process, add your task inside one of the targets below and uncomment it.
 	Other similar extension points exist, see Wix.targets.

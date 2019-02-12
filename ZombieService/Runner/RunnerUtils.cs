@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -26,9 +27,19 @@ namespace ZombieService.Runner
         /// <param name="settings">Zombie Settings to be used to retrieve latest Release.</param>
         public static async void GetLatestRelease(ZombieSettings settings)
         {
-            if (string.IsNullOrEmpty(settings?.AccessToken) || string.IsNullOrEmpty(settings.Address))
+            if (IsProcessRunning("Revit"))
             {
-                var a = string.IsNullOrEmpty(settings.Address) ? "Not found" : "Exists";
+                _logger.Error("Update failed. Revit is running.");
+
+                // (Konrad) Since release was not up to date. Let's show a notification to user that update is in progress. 
+                PublishGuiUpdate(Program.Settings, Status.Notification, "Update failed. Revit is running.");
+
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(settings?.AccessToken) || string.IsNullOrWhiteSpace(settings.Address))
+            {
+                var a = string.IsNullOrWhiteSpace(settings.Address) ? "Not found" : "Exists";
                 _logger.Error($"Connection failed! Address: {a}");
                 return;
             }
@@ -55,6 +66,9 @@ namespace ZombieService.Runner
                 return;
             }
 
+            // (Konrad) Since release was not up to date. Let's show a notification to user that update is in progress. 
+            PublishGuiUpdate(Program.Settings, Status.Notification, "Update in progress. Please do not launch Revit.");
+
             var dir = FileUtils.GetZombieDownloadsDirectory();
             var downloaded = 0;
             foreach (var asset in release.Assets)
@@ -66,6 +80,10 @@ namespace ZombieService.Runner
             if (downloaded != release.Assets.Count)
             {
                 _logger.Error("Failed to download assets!");
+
+                // (Konrad) Since release was not up to date. Let's show a notification to user that update is in progress. 
+                PublishGuiUpdate(Program.Settings, Status.Notification, "Update failed. Check your internet connection and try again.");
+
                 return;
             }
 
@@ -77,6 +95,10 @@ namespace ZombieService.Runner
                 if (!SettingsUtils.TryGetStoredSettings(settings.SettingsLocation, out newSettings))
                 {
                     _logger.Error("Could not get latest local Zombie Settings!");
+
+                    // (Konrad) Since release was not up to date. Let's show a notification to user that update is in progress. 
+                    PublishGuiUpdate(Program.Settings, Status.Notification, "Update failed. Zombie Settings not found.");
+
                     return;
                 }
             }
@@ -85,6 +107,10 @@ namespace ZombieService.Runner
                 if (!SettingsUtils.TryGetRemoteSettings(settings.SettingsLocation, out newSettings))
                 {
                     _logger.Error("Could not get latest remote Zombie Settings!");
+
+                    // (Konrad) Since release was not up to date. Let's show a notification to user that update is in progress. 
+                    PublishGuiUpdate(Program.Settings, Status.Notification, "Update failed. Zombie Settings not found.");
+
                     return;
                 }
             }
@@ -100,12 +126,18 @@ namespace ZombieService.Runner
                         // (Konrad) Use old settings
                         if (LockAllContents(loc.LocationType == LocationType.Trash ? settings : newSettings, asset, loc.DirectoryPath, loc.LocationType, out var zippedStreams))
                         {
-                            fileStreams = fileStreams.Concat(zippedStreams).GroupBy(x => x.Key)
+                            fileStreams = fileStreams
+                                .Concat(zippedStreams)
+                                .GroupBy(x => x.Key)
                                 .ToDictionary(x => x.Key, x => x.First().Value);
                             continue;
                         }
                         
                         ReleaseStreams(fileStreams);
+
+                        // (Konrad) Since release was not up to date. Let's show a notification to user that update is in progress. 
+                        PublishGuiUpdate(Program.Settings, Status.Notification, "Update failed. Revit is potentially running preventing an update.");
+
                         return;
                     }
 
@@ -127,6 +159,10 @@ namespace ZombieService.Runner
                     {
                         _logger.Fatal(e.Message);
                         ReleaseStreams(fileStreams);
+
+                        // (Konrad) Since release was not up to date. Let's show a notification to user that update is in progress. 
+                        PublishGuiUpdate(Program.Settings, Status.Notification, "Update failed...due to unknown reasons. Sorry about that.");
+
                         return;
                     }
                 }
@@ -148,6 +184,10 @@ namespace ZombieService.Runner
                             if(DeleteZipContents(asset, loc.DirectoryPath, fileStreams)) continue;
 
                             ReleaseStreams(fileStreams);
+
+                            // (Konrad) Since release was not up to date. Let's show a notification to user that update is in progress. 
+                            PublishGuiUpdate(Program.Settings, Status.Notification, "Update failed. Revit is potentially running preventing an update.");
+
                             return;
                         }
 
@@ -162,6 +202,10 @@ namespace ZombieService.Runner
                         if (FileUtils.DeleteFile(to)) continue;
 
                         ReleaseStreams(fileStreams);
+
+                        // (Konrad) Since release was not up to date. Let's show a notification to user that update is in progress. 
+                        PublishGuiUpdate(Program.Settings, Status.Notification, "Update failed. Revit is potentially running preventing an update.");
+
                         return;
                     }
                 }
@@ -175,6 +219,10 @@ namespace ZombieService.Runner
                             if (ExtractToDirectory(asset, loc.DirectoryPath, fileStreams)) continue;
 
                             ReleaseStreams(fileStreams);
+
+                            // (Konrad) Since release was not up to date. Let's show a notification to user that update is in progress. 
+                            PublishGuiUpdate(Program.Settings, Status.Notification, "Update failed. Revit is potentially running preventing an update.");
+
                             return;
                         }
 
@@ -194,6 +242,10 @@ namespace ZombieService.Runner
                         if (FileUtils.Copy(from, to)) continue;
 
                         ReleaseStreams(fileStreams);
+
+                        // (Konrad) Since release was not up to date. Let's show a notification to user that update is in progress. 
+                        PublishGuiUpdate(Program.Settings, Status.Notification, "Update failed. Revit is potentially running preventing an update.");
+
                         return;
                     }
                 }
@@ -222,7 +274,10 @@ namespace ZombieService.Runner
             Program.Settings = newSettings;
 
             // (Konrad) Publish to any open GUIs
-            PublishGuiUpdate(newSettings, Status.Succeeded, "Successfully updated to version: " + release.TagName);
+            PublishGuiUpdate(newSettings, Status.Succeeded, "Successfully updated to Version: " + release.TagName);
+
+            // (Konrad) Since release was not up to date. Let's show a notification to user that update is in progress. 
+            PublishGuiUpdate(Program.Settings, Status.Notification, "Update succeeded. Go ahead and launch Revit to see what's new.");
         }
 
         #region Utilities
@@ -240,6 +295,24 @@ namespace ZombieService.Runner
         }
 
         /// <summary>
+        /// Checks if process with a given name is currently running.
+        /// </summary>
+        /// <param name="name">Name of the process to check for.</param>
+        /// <returns>True if process is running, otherwise false.</returns>
+        private static bool IsProcessRunning(string name)
+        {
+            foreach (var clsProcess in Process.GetProcesses())
+            {
+                if (clsProcess.ProcessName.Equals(name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Utility method that publishes a GUI update to ZombieGUI.
         /// </summary>
         /// <param name="settings">Latest ZombieSettings file that GUI will be updated to.</param>
@@ -248,7 +321,7 @@ namespace ZombieService.Runner
         private static void PublishGuiUpdate(ZombieSettings settings, Status status, string message)
         {
             var msg = "Status: " + status + " Message: " + message;
-            if (string.IsNullOrEmpty(Program.RecentLog) || msg != Program.RecentLog)
+            if (string.IsNullOrWhiteSpace(Program.RecentLog) || msg != Program.RecentLog)
             {
                 _logger.Info(msg);
                 Program.RecentLog = msg;

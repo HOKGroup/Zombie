@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Drawing;
 using System.Windows;
 using System.Windows.Controls;
 using GalaSoft.MvvmLight;
@@ -11,6 +13,7 @@ using NLog;
 using Zombie.Controls;
 using Zombie.Utilities;
 using Zombie.Utilities.Wpf;
+using ZombieUtilities;
 using ZombieUtilities.Client;
 using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
@@ -26,9 +29,11 @@ namespace Zombie
         private ZombieModel Model { get; set; }
         private bool Cancel { get; set; } = true;
         private TextBlock Control { get; set; }
+        private Window Win { get; set; }
         public ObservableCollection<TabItem> TabItems { get; set; }
-        public RelayCommand WindowClosing { get; set; }
+        public RelayCommand<CancelEventArgs> WindowClosing { get; set; }
         public RelayCommand<Window> WindowLoaded { get; set; }
+        public RelayCommand<Window> StateChanged { get; set; }
         public bool ConnectionFailed { get; set; }
         public string Title { get; set; }
 
@@ -39,8 +44,9 @@ namespace Zombie
             Model = model;
             Title = "Zombie v." + System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
 
-            WindowClosing = new RelayCommand(OnWindowClosing);
+            WindowClosing = new RelayCommand<CancelEventArgs>(OnWindowClosing);
             WindowLoaded = new RelayCommand<Window>(OnWindowLoaded);
+            StateChanged = new RelayCommand<Window>(OnStateChanged);
 
             var gitHub = new TabItem
             {
@@ -71,11 +77,6 @@ namespace Zombie
 
         #region Message Handlers
 
-        private void OnUpdateStatus(UpdateStatus obj)
-        {
-            Control?.Dispatcher.Invoke(() => { StatusBarManager.StatusLabel.Text = obj.Message; });
-        }
-
         /// <summary>
         /// This method handles all GUI updates coming from the ZombieService. Since we stored the
         /// reference to a control on this view model, it's a good place to set status manager updates
@@ -98,6 +99,10 @@ namespace Zombie
                     break;
                 case Status.UpToDate:
                     Model.Settings = obj.Settings;
+                    Control?.Dispatcher.Invoke(() => { StatusBarManager.StatusLabel.Text = obj.Message; });
+                    break;
+                case Status.Notification:
+                    Model.ShowNotification(obj.Message);
                     Control?.Dispatcher.Invoke(() => { StatusBarManager.StatusLabel.Text = obj.Message; });
                     break;
                 default:
@@ -168,7 +173,7 @@ namespace Zombie
 
         #region Command Handlers
 
-        private void OnWindowClosing()
+        private void OnWindowClosing(CancelEventArgs args)
         {
             foreach (var tab in TabItems)
             {
@@ -188,6 +193,15 @@ namespace Zombie
             {
                 _logger.Fatal(e.Message);
             }
+
+            if (!Cancel)
+            {
+                Cleanup(); // removes Messenger bindings
+                return; // closes Window
+            }
+
+            args.Cancel = true;
+            Win.Hide();
         }
 
         private void OnWindowLoaded(Window win)
@@ -198,6 +212,79 @@ namespace Zombie
             // (Konrad) Store reference to UI Control. It will be needed when
             // settings status messages from a pool thread.
             Control = ((ZombieView) win).statusLabel;
+        }
+
+        private static void OnStateChanged(Window win)
+        {
+            if (win == null) return;
+            if (win.WindowState == WindowState.Minimized)
+                win.Hide();
+        }
+
+        private void OnUpdateStatus(UpdateStatus obj)
+        {
+            Control?.Dispatcher.Invoke(() => { StatusBarManager.StatusLabel.Text = obj.Message; });
+        }
+
+        #endregion
+
+        #region Startup
+
+        /// <summary>
+        /// Method that will by default dock the Window in a System Menu and hide the window.
+        /// </summary>
+        /// <param name="win">Main Control Window.</param>
+        /// <param name="show">If true window will be shown, otherwise only tray icon appears.</param>
+        public void Startup(Window win, bool show = true)
+        {
+            Win = win;
+
+            var ni = new System.Windows.Forms.NotifyIcon();
+            var sri = Application.GetResourceStream(
+                new Uri("pack://application:,,,/Resources/iconsZombie.ico"));
+            if (sri != null)
+            {
+                using (var s = sri.Stream)
+                {
+                    ni.Icon = new Icon(s);
+                }
+            }
+            ni.Visible = true;
+            ni.DoubleClick += delegate
+            {
+                if (!UserUtils.IsAdministrator()) return;
+
+                win.Show();
+                win.WindowState = WindowState.Normal;
+            };
+
+            // (Konrad) Add context menu. We are using Forms namespaces here.
+            var exit = new System.Windows.Forms.MenuItem("Exit (Admin)");
+            exit.Click += OnExit;
+
+            var settings = new System.Windows.Forms.MenuItem("Settings (Admin)");
+            settings.Click += OnSettings;
+
+            ni.ContextMenu = new System.Windows.Forms.ContextMenu(new[] { exit, settings });
+
+            if (Win == null || !UserUtils.IsAdministrator() || !show) return;
+
+            Win.Show();
+            Win.WindowState = WindowState.Normal;
+        }
+
+        private void OnSettings(object sender, EventArgs e)
+        {
+            if (Win == null || !UserUtils.IsAdministrator()) return;
+
+            Win.Show();
+            Win.WindowState = WindowState.Normal;
+        }
+
+        private void OnExit(object sender, EventArgs e)
+        {
+            Cancel = false;
+            Win?.Close();
         }
 
         #endregion

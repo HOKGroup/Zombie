@@ -3,6 +3,7 @@
 using System;
 using System.ServiceModel;
 using System.Windows;
+using DesktopNotifications;
 using GalaSoft.MvvmLight.Messaging;
 using NLog;
 using Zombie.Controls;
@@ -64,6 +65,12 @@ namespace Zombie
                 _logger.Fatal(ex.Message);
             }
 
+            // Register AUMID and COM server (for Desktop Bridge apps, this no-ops)
+            DesktopNotificationManagerCompat.RegisterAumidAndComServer<MyNotificationActivator>("HOK.Zombie");
+
+            // Register COM server and activator type
+            DesktopNotificationManagerCompat.RegisterActivator<MyNotificationActivator>();
+
             // (Konrad) Create the startup window
             var m = new ZombieModel(Settings);
             var vm = new ZombieViewModel(m);
@@ -71,7 +78,12 @@ namespace Zombie
             {
                 DataContext = vm
             };
-            view.Show();
+
+            var show = true;
+            if (e.Args.Length == 1)
+                show = e.Args[0] == "show";
+
+            vm.Startup(view, show);
 
             Messenger.Default.Send(connected
                 ? new UpdateStatus {Message = "Successfully connected to ZombieService!"}

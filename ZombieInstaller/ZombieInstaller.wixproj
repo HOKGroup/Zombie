@@ -31,6 +31,16 @@
     <Content Include="Resources\WiXNewFolderBtn.ico" />
     <Content Include="Resources\WiXUpFolderBtn.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ZombieService\ZombieService.csproj">
+      <Name>ZombieService</Name>
+      <Project>{512e67a1-5d95-4153-884d-f7eaf58e9dfb}</Project>
+      <Private>True</Private>
+      <DoNotHarvest>True</DoNotHarvest>
+      <RefProjectOutputGroups>Binaries;Content;Satellites</RefProjectOutputGroups>
+      <RefTargetDir>INSTALLFOLDER</RefTargetDir>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(WixTargetsPath)" Condition=" Exists('$(WixTargetsPath)') " />
   <Target Name="EnsureWixToolsetInstalled" Condition=" !Exists('$(WixTargetsPath)') ">
     <Error Text="The WiX Toolset v4 build tools must be installed to build this project. To download the WiX Toolset v4, see http://wixtoolset.org/releases/" />

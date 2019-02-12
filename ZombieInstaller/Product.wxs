@@ -1,11 +1,56 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-  <Product Id="*" Name="ZombieInstaller" Language="1033" Version="1.0.0.0" Manufacturer="" UpgradeCode="91c429cc-fb4c-4009-b02e-8ab0c2576604">
-    <Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
-    <MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
-    <MediaTemplate />
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Product Id="*" Name="Zombie" Language="1033" Version="1.0.0.0" Manufacturer="HOK" UpgradeCode="8dc1f22c-f9de-48be-9f6e-e97f6d4fc9d9">
+    <Package InstallerVersion="200" Compressed="yes" InstallPrivileges="elevated" Manufacturer="HOK" Comments="Zombie is a set of tools that helps manage GitHub releases." Description="Zombie" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://github.com/HOKGroup/Zombie/releases" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/HOKGroup/Zombie/issues" />
+    <Property Id="ARPHELPLINK" Value="https://www.hok.com/" />
+    <CustomAction Id="VSDCA_AllUsers" Property="ALLUSERS" Value="2" Execute="firstSequence" />
+    <CustomAction Id="PreventDowngrading" Error="Newer version already installed." />
+    <Upgrade Id="8dc1f22c-f9de-48be-9f6e-e97f6d4fc9d9">
+      <UpgradeVersion Maximum="1.0.0.0" Property="OLDPRODUCTFOUND" OnlyDetect="no" IncludeMinimum="yes" IncludeMaximum="no" Language="1033" />
+    </Upgrade>
+    <Property Id="ARPCOMMENTS" Value="Zombie is a set of tools that helps manage GitHub releases." />
+    <Property Id="ARPCONTACT" Value="HOK" />
+    <MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    <MediaTemplate EmbedCab="yes" />
+    <Property Id="ACCESS_TOKEN" />
+    <Property Id="WEB_SERVICE_ENDPOINT" />
+    <Property Id="SETTINGS_PATH" />
     <Feature Id="ProductFeature" Title="ZombieInstaller" Level="1">
-      <ComponentGroupRef Id="ProductComponents" />
+      <!--Zombie Files-->
+      <ComponentRef Id="comp_Zombie_Zombie" />
+      <ComponentRef Id="comp_Zombie_GalaSoftMvvmLight" />
+      <ComponentRef Id="comp_Zombie_GongSolutionsWpfDragDrop" />
+      <ComponentRef Id="comp_Zombie_NewtonsoftJson" />
+      <ComponentRef Id="comp_Zombie_Nlog" />
+      <ComponentRef Id="comp_Zombie_Octokit" />
+      <ComponentRef Id="comp_Zombie_RestSharp" />
+      <ComponentRef Id="comp_Zombie_ZombieUtilities" />
+      <ComponentRef Id="comp_Zombie_WindowsInteractivity" />
+      <ComponentRef Id="comp_Zombie_Compression" />
+      <ComponentRef Id="comp_Zombie_ServiceLocation" />
+      <ComponentRef Id="comp_Zombie_GalaSoftMvvmLightPlatform" />
+      <ComponentRef Id="comp_Zombie_GalaSoftMvvmLightExtras" />
+      <ComponentRef Id="comp_Zombie_ZombieLogo" />
+      <!--Zombie Service Files-->
+      <ComponentRef Id="comp_ZombieService_ZombieService" />
+      <ComponentRef Id="comp_ZombieService_Newtonsoft" />
+      <ComponentRef Id="comp_ZombieService_NLog" />
+      <ComponentRef Id="comp_ZombieService_Octokit" />
+      <ComponentRef Id="comp_ZombieService_RestSharp" />
+      <ComponentRef Id="comp_ZombieService_ZombieUtilities" />
+      <ComponentRef Id="comp_ZombieService_Compression" />
+      <ComponentRef Id="comp_ZombieService_ZombieServiceConfig" />
+      <!--Zombie Start Menu-->
+      <ComponentRef Id="comp_312F6137_ADA8_4530_A1C6_5F31CF71C914" />
+      <!--Zombie Service Installer-->
+      <ComponentRef Id="comp_ServiceInstaller" />
+      <!--Registry Keys-->
+      <ComponentGroupRef Id="RegistryGroup" />
+      <!--Installer Banner/License-->
+      <ComponentRef Id="comp_0A4C46FB_A5D7_4377_81C8_5B157E5BE800" />
+      <ComponentRef Id="comp_C73B52DE_1D61_413B_BBA3_B9DB496FDC64" />
     </Feature>
     <InstallUISequence>
       <Custom Action="ERRCA_UIANDADVERTISED" Sequence="5"><![CDATA[ProductState=1]]></Custom>
@@ -16,6 +61,9 @@
       <Show Dialog="MaintenanceForm" Sequence="999"><![CDATA[Installed<>""]]></Show>
       <Show Dialog="ResumeForm" Sequence="998"><![CDATA[Installed="" AND RESUME]]></Show>
       <Show Dialog="FinishedForm" OnExit="success" />
+      <Custom Action="PreventDowngrading" After="FindRelatedProducts"><![CDATA[NEWPRODUCTFOUND]]></Custom>
+      <FindRelatedProducts Sequence="200" />
+      <Custom Action="VSDCA_AllUsers" After="CostInitialize"><![CDATA[Installed="" AND NOT RESUME AND ALLUSERS=1]]></Custom>
     </InstallUISequence>
     <CustomAction Id="VSDCA_FolderForm_AllUsers" Property="FolderForm_AllUsers" Value="ALL" />
     <CustomAction Id="DIRCA_TARGETDIR" Property="TARGETDIR" Value="[ProgramFilesFolder][Manufacturer]\[ProductName]" Execute="firstSequence" />
@@ -29,9 +77,18 @@
     </AdminUISequence>
     <InstallExecuteSequence>
       <Custom Action="DIRCA_TARGETDIR" Before="CostInitialize"><![CDATA[TARGETDIR = ""]]></Custom>
+      <WriteRegistryValues Sequence="5901">
+      </WriteRegistryValues>
+      <!--Install Service is 5800. This ensures that we override the registry values after the install.-->
+      <ScheduleReboot After="InstallFinalize">REMOVE="ALL"</ScheduleReboot>
+      <Custom Action="PreventDowngrading" After="FindRelatedProducts"><![CDATA[NEWPRODUCTFOUND]]></Custom>
+      <Custom Action="VSDCA_AllUsers" After="CostInitialize"><![CDATA[Installed="" AND NOT RESUME AND ALLUSERS=1]]></Custom>
     </InstallExecuteSequence>
-    <UIRef Id="SplashDlg" />
     <UIRef Id="FinishedDlg" />
+    <UIRef Id="ProgressDlg" />
+    <UIRef Id="CustomText3Dlg" />
+    <UIRef Id="WelcomeDlg" />
+    <UIRef Id="LicenseDlg" />
     <UI Id="Base">
       <Property Id="VSDNETURLMSG" Value="This setup requires the .NET Framework version [1].  Please install the .NET Framework and run this setup again.  The .NET Framework can be obtained from the web.  Would you like to do this now?" />
       <Property Id="VSDIISMSG" Value="This setup requires Internet Information Server 5.1 or higher and Windows XP or higher.  This setup cannot be installed on Windows 2000.  Please install Internet Information Server or a newer operating system and run this setup again." />
@@ -151,7 +208,8 @@
       </Dialog>
     </UI>
     <UI Id="UserInterface">
-      <Binary Id="DefBannerBitmap" SourceFile="Resources\WiXDefBannerBitmap.bmp" />
+      <Binary Id="_21EF35DE_8220_4128_A814_3CF46709E292" SourceFile="..\_graphics\PNG\banner.bmp" />
+      <Binary Id="_C26F5196_7EC0_4B36_B93A_6C8F8414A44D" SourceFile="Resources\banner.bmp" />
       <Property Id="DefaultUIFont" Value="VsdDefaultUIFont.524F4245_5254_5341_4C45_534153783400" />
       <TextStyle Id="VsdDefaultUIFont.524F4245_5254_5341_4C45_534153783400" FaceName="MS Sans Serif" Size="9" Red="0" Green="0" Blue="0" />
       <UIText Id="MenuLocal"><![CDATA[Will be installed on local hard drive]]></UIText>
@@ -218,7 +276,7 @@
         </Control>
         <Control Id="CancelButton" Type="PushButton" X="156" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}Cancel" TabSkip="no" Disabled="yes" />
         <Control Id="PreviousButton" Type="PushButton" X="228" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}&lt; &amp;Back" TabSkip="no" Disabled="yes" />
-        <Control Id="BannerBmp" Type="Bitmap" X="0" Y="0" Width="375" Height="52" Text="DefBannerBitmap" TabSkip="no" Disabled="yes" />
+        <Control Id="BannerBmp" Type="Bitmap" X="0" Y="0" Width="375" Height="52" Text="_C26F5196_7EC0_4B36_B93A_6C8F8414A44D" TabSkip="no" Disabled="yes" />
         <Control Id="Line1" Type="Line" X="0" Y="52" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
         <Control Id="Line2" Type="Line" X="0" Y="252" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
         <Control Id="BannerText" Type="Text" X="9" Y="9" Width="306" Height="33" Text="{\VSI_MS_Sans_Serif16.0_1_0}Installation Interrupted" TabSkip="yes" Transparent="yes" NoPrefix="yes" />
@@ -237,7 +295,7 @@
         </Control>
         <Control Id="CancelButton" Type="PushButton" X="156" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}Cancel" TabSkip="no" Disabled="yes" />
         <Control Id="PreviousButton" Type="PushButton" X="228" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}&lt; &amp;Back" TabSkip="no" Disabled="yes" />
-        <Control Id="BannerBmp" Type="Bitmap" X="0" Y="0" Width="375" Height="52" Text="DefBannerBitmap" TabSkip="no" Disabled="yes" />
+        <Control Id="BannerBmp" Type="Bitmap" X="0" Y="0" Width="375" Height="52" Text="_C26F5196_7EC0_4B36_B93A_6C8F8414A44D" TabSkip="no" Disabled="yes" />
         <Control Id="Line1" Type="Line" X="0" Y="52" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
         <Control Id="Line2" Type="Line" X="0" Y="252" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
         <Control Id="BannerText" Type="Text" X="9" Y="9" Width="306" Height="33" Text="{\VSI_MS_Sans_Serif16.0_1_0}Installation Incomplete" TabSkip="yes" Transparent="yes" NoPrefix="yes" />
@@ -263,7 +321,7 @@
           <Publish Event="SpawnDialog" Value="Cancel" />
         </Control>
         <Control Id="PreviousButton" Type="PushButton" X="228" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}&lt; &amp;Back" TabSkip="no" Disabled="yes" />
-        <Control Id="BannerBmp" Type="Bitmap" X="0" Y="0" Width="375" Height="52" Text="DefBannerBitmap" TabSkip="no" Disabled="yes" />
+        <Control Id="BannerBmp" Type="Bitmap" X="0" Y="0" Width="375" Height="52" Text="_C26F5196_7EC0_4B36_B93A_6C8F8414A44D" TabSkip="no" Disabled="yes" />
         <Control Id="Line1" Type="Line" X="0" Y="52" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
         <Control Id="Line2" Type="Line" X="0" Y="252" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
         <Control Id="BannerText" Type="Text" X="9" Y="9" Width="306" Height="33" Text="{\VSI_MS_Sans_Serif16.0_1_0}Welcome to the [ProductName] Setup Wizard" TabSkip="yes" Transparent="yes" NoPrefix="yes" />
@@ -277,7 +335,7 @@
           <Publish Event="SpawnDialog" Value="Cancel" />
         </Control>
         <Control Id="PreviousButton" Type="PushButton" X="228" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}&lt; &amp;Back" TabSkip="no" Disabled="yes" />
-        <Control Id="BannerBmp" Type="Bitmap" X="0" Y="0" Width="375" Height="52" Text="DefBannerBitmap" TabSkip="no" Disabled="yes" />
+        <Control Id="BannerBmp" Type="Bitmap" X="0" Y="0" Width="375" Height="52" Text="_C26F5196_7EC0_4B36_B93A_6C8F8414A44D" TabSkip="no" Disabled="yes" />
         <Control Id="Line1" Type="Line" X="0" Y="52" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
         <Control Id="Line2" Type="Line" X="0" Y="252" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
         <Control Id="BannerText" Type="Text" X="9" Y="9" Width="306" Height="33" Text="{\VSI_MS_Sans_Serif16.0_1_0}Welcome to the [ProductName] Setup Wizard" TabSkip="yes" Transparent="yes" NoPrefix="yes" />
@@ -289,7 +347,7 @@
         </Control>
         <Control Id="CancelButton" Type="PushButton" X="156" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}Cancel" TabSkip="no" Disabled="yes" />
         <Control Id="PreviousButton" Type="PushButton" X="228" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}&lt; &amp;Back" TabSkip="no" Disabled="yes" />
-        <Control Id="BannerBmp" Type="Bitmap" X="0" Y="0" Width="375" Height="52" Text="DefBannerBitmap" TabSkip="no" Disabled="yes" />
+        <Control Id="BannerBmp" Type="Bitmap" X="0" Y="0" Width="375" Height="52" Text="_C26F5196_7EC0_4B36_B93A_6C8F8414A44D" TabSkip="no" Disabled="yes" />
         <Control Id="Line1" Type="Line" X="0" Y="52" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
         <Control Id="Line2" Type="Line" X="0" Y="252" Width="375" Height="6" Text="{\VSI_MS_Sans_Serif13.0_0_0}MsiHorizontalLine" TabSkip="yes" Disabled="yes" />
         <Control Id="BannerText" Type="Text" X="9" Y="9" Width="306" Height="33" Text="{\VSI_MS_Sans_Serif16.0_1_0}Installation Complete" TabSkip="yes" Transparent="yes" NoPrefix="yes" />
@@ -297,7 +355,7 @@
           <Condition Action="show"><![CDATA[REMOVE<>""]]></Condition>
           <Condition Action="hide"><![CDATA[REMOVE=""]]></Condition>
         </Control>
-        <Control Id="UpdateText" Type="Text" X="9" Y="216" Width="354" Height="36" Text="{\VSI_MS_Sans_Serif13.0_0_0}Please use Windows Update to check for any critical updates to the .NET Framework." TabSkip="yes" NoPrefix="yes">
+        <Control Id="UpdateText" Type="Text" X="9" Y="216" Width="354" Height="36" Text="{\VSI_MS_Sans_Serif13.0_0_0}Please visit https://github.com/HOKGroup/Zombie for the latest releases and updates!" TabSkip="yes" NoPrefix="yes">
           <Condition Action="show"><![CDATA[REMOVE=""]]></Condition>
           <Condition Action="hide"><![CDATA[REMOVE<>""]]></Condition>
         </Control>
@@ -310,17 +368,190 @@
   </Product>
   <Fragment>
     <Directory Id="TARGETDIR" Name="SourceDir">
+      <Component Id="comp_0A4C46FB_A5D7_4377_81C8_5B157E5BE800" Guid="043B09A9-2512-4E1B-B51E-B8F1A48BA577" Permanent="no" SharedDllRefCount="no" Transitive="no">
+        <File Id="_0EE84DC5_9648_47EC_8A45_EB33A646E3DB" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" Name="banner.bmp" Source="..\_graphics\PNG\banner.bmp" KeyPath="yes" />
+      </Component>
+      <Component Id="comp_C73B52DE_1D61_413B_BBA3_B9DB496FDC64" Guid="E6BAEC4A-8260-42D4-9E6E-DEA299AC14D0" Permanent="no" SharedDllRefCount="no" Transitive="no">
+        <File Id="_50D5AC4B_D84A_4226_A5C5_1AE709A7976E" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" Name="license.rtf" Source="..\_info\license.rtf" KeyPath="yes" />
+      </Component>
       <Directory Id="ProgramFilesFolder">
-        <Directory Id="INSTALLFOLDER" Name="ZombieInstaller" />
+        <Directory Id="dir_7D3FFD5C_AD3E_424E_BB00_C5B007EE2648" Name="Zombie">
+          <Component Id="comp_Zombie_Zombie" Guid="312DA3DD-3634-430C-BD1C-2D95D31BC144" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_79637776_CE22_4D5F_A7AA_B1F6752A79EA" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="Zombie.exe" 
+                  Source="..\Zombie\bin\Debug\Zombie.exe" KeyPath="yes" />
+          </Component>
+          <Component Id="comp_Zombie_GalaSoftMvvmLight" Guid="DCF57B86-0C1F-4E48-A410-8722B732B3C4" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_D1F2C8BF_E0CB_4DCF_A81E_4092379D4816" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="GalaSoft.MvvmLight.dll" 
+                  Source="..\Zombie\bin\Debug\GalaSoft.MvvmLight.dll" KeyPath="yes" />
+          </Component>
+          <Component Id="comp_Zombie_GalaSoftMvvmLightExtras" Guid="BFCD7E7E-3632-4CFB-907C-614A187E2D59" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_E2919E3D_015B_4BA5_B744_79720491D75E" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="GalaSoft.MvvmLight.Extras.dll" 
+                  Source="..\Zombie\bin\Debug\GalaSoft.MvvmLight.Extras.dll" KeyPath="yes" />
+          </Component>   
+          <Component Id="comp_Zombie_GalaSoftMvvmLightPlatform" Guid="61939693-8873-4F94-BC0C-2DAAC6D8FB20" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_B23D5090_AA2F_4DFA_A0FF_E1077D55D2D2" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="GalaSoft.MvvmLight.Platform.dll" 
+                  Source="..\Zombie\bin\Debug\GalaSoft.MvvmLight.Platform.dll" KeyPath="yes" />
+          </Component>       
+          <Component Id="comp_Zombie_ServiceLocation" Guid="1AA60BDC-4075-4620-B09F-6A52249DD455" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_C419740F_6D6A_4A7B_AC53_4F91CF2E7223" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="Microsoft.Practices.ServiceLocation.dll" 
+                  Source="..\Zombie\bin\Debug\Microsoft.Practices.ServiceLocation.dll" KeyPath="yes" />
+          </Component>           
+          <Component Id="comp_Zombie_Compression" Guid="4581AC7A-0D2F-4B65-AAC8-E866537781A3" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_10A4ED02_9AAE_4FB4_9850_643B924851F9" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="System.IO.Compression.dll" 
+                  Source="..\Zombie\bin\Debug\System.IO.Compression.dll" KeyPath="yes" />
+          </Component>        
+          <Component Id="comp_Zombie_WindowsInteractivity" Guid="8C4173E8-212A-4EC2-8196-F2FB06907A34" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_06EB74EC_6FEB_4E40_9D65_F42A5103A430" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="System.Windows.Interactivity.dll" 
+                  Source="..\Zombie\bin\Debug\System.Windows.Interactivity.dll" KeyPath="yes" />
+          </Component>
+          <Component Id="comp_Zombie_GongSolutionsWpfDragDrop" Guid="7F05A8AE-0AA6-4A41-B90F-43B5AFD7D28F" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_868CEE4E_7B00_44AA_A154_161CB820C087" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="GongSolutions.WPF.DragDrop.dll" 
+                  Source="..\Zombie\bin\Debug\GongSolutions.WPF.DragDrop.dll" KeyPath="yes" />
+          </Component>
+          <Component Id="comp_Zombie_NewtonsoftJson" Guid="20727DE2-2325-40A3-807C-554BC548588E" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_E6212F95_9D96_411A_9A64_24E1A390107E" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="Newtonsoft.Json.dll" 
+                  Source="..\Zombie\bin\Debug\Newtonsoft.Json.dll" KeyPath="yes" />
+          </Component>
+          <Component Id="comp_Zombie_Nlog" Guid="C264693D-9609-4174-A33C-A68DD8591909" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_492F8ACF_2B76_4662_879F_AAC0197204FC" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="NLog.dll" 
+                  Source="..\Zombie\bin\Debug\NLog.dll" KeyPath="yes" />
+          </Component>
+          <Component Id="comp_Zombie_Octokit" Guid="0F0513B3-8EF4-46DC-893B-DA0B7308D43E" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_5B3421C6_E33F_451F_9C40_9D8E5A6DF87A" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes"
+                  Name="Octokit.dll" 
+                  Source="..\Zombie\bin\Debug\Octokit.dll" KeyPath="yes" />
+          </Component>
+          <Component Id="comp_Zombie_RestSharp" Guid="6345D3E9-5C52-48B4-BD29-EDD5041273CD" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_D62A8F57_2184_4939_9172_FB5ECDE7EAF9" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="RestSharp.dll" 
+                  Source="..\Zombie\bin\Debug\RestSharp.dll" KeyPath="yes" />
+          </Component>
+          <Component Id="comp_Zombie_ZombieUtilities" Guid="99FA378E-096F-49BA-A69F-B73E23BBD38F" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_632F6C7D_04E5_41AE_B3A8_E89616612B29" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="ZombieUtilities.dll" 
+                  Source="..\Zombie\bin\Debug\ZombieUtilities.dll" KeyPath="yes" />
+          </Component>
+          <Directory Id="dir_1EAD3491_2B4B_45F2_96FD_C83A78D31E8A" Name="Resources">
+            <Component Id="comp_Zombie_ZombieLogo" Guid="67AF35C9-8A7C-4E53-991F-E6FA6DCF3A1E" Permanent="no" SharedDllRefCount="no" Transitive="no">
+              <File Id="_E91B4FD5_E010_4074_B9A5_EFF78223BCD2" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" Name="zombie_64x64.png" Source="..\Zombie\bin\Debug\Resources\zombie_64x64.png" KeyPath="yes" />
+            </Component>
+          </Directory>
+        </Directory>
+        <Directory Id="dir_10C5951E_8B96_414C_B5D5_462D4D5282E2" Name="ZombieService">
+          <Component Id="comp_ZombieService_ZombieService" Guid="A3B03BA0-DE18-45D6-A674-125574A83F42" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_3B251300_1B9A_45CA_8AA6_0264113401F7" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="ZombieService.exe" 
+                  Source="..\ZombieService\bin\Debug\ZombieService.exe" KeyPath="yes" />
+          </Component>
+          <Component Id="comp_ZombieService_Newtonsoft" Guid="EBFAC4B5-ED72-49E9-ABA9-EB1150AF1CC6" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_5342607B_140E_4551_BDE1_7C78D89BB541" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="Newtonsoft.Json.dll" 
+                  Source="..\ZombieService\bin\Debug\Newtonsoft.Json.dll" KeyPath="yes" />
+          </Component>
+          <Component Id="comp_ZombieService_NLog" Guid="EF354F59-9BE1-4C24-A3C8-6F4F362B75B3" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_AC2AE4A7_7604_40A9_8825_79969145496B" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="NLog.dll" 
+                  Source="..\ZombieService\bin\Debug\NLog.dll" KeyPath="yes" />
+          </Component>
+          <Component Id="comp_ZombieService_Octokit" Guid="3560EC58-E34C-4261-8F56-B5190BF5684C" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_56BC83AF_7D8E_46B9_AF7E_355C736F5E44" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="Octokit.dll" 
+                  Source="..\ZombieService\bin\Debug\Octokit.dll" KeyPath="yes" />
+          </Component>
+          <Component Id="comp_ZombieService_RestSharp" Guid="4FF8EE21-037A-427B-8BBD-706ABC492E3D" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_F6BEA545_2F19_4812_91DA_510DEAAC12A3" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="RestSharp.dll" 
+                  Source="..\ZombieService\bin\Debug\RestSharp.dll" KeyPath="yes" />
+          </Component>
+          <Component Id="comp_ZombieService_ZombieUtilities" Guid="C99BAC14-5291-4D61-858D-9404C8BD08A3" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_777FB6ED_1301_4F82_BD90_54E62E6AACA6" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="ZombieUtilities.dll" 
+                  Source="..\ZombieService\bin\Debug\ZombieUtilities.dll" KeyPath="yes" />
+          </Component>
+          <Component Id="comp_ZombieService_Compression" Guid="985361AE-6887-4F3D-AB5D-131EFC6ECB50" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_D4101652_2E33_4282_867D_9C668147A64F" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="System.IO.Compression.dll" 
+                  Source="..\ZombieService\bin\Debug\System.IO.Compression.dll" KeyPath="yes" />
+          </Component>     
+          <Component Id="comp_ZombieService_ZombieServiceConfig" Guid="A1397435-5110-46DA-8AAB-2CF4F32279FA" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_D872235B_3BAD_4CD9_B644_EA0420528DB1" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="ZombieService.exe.config" 
+                  Source="..\ZombieService\bin\Debug\ZombieService.exe.config" KeyPath="yes" />
+          </Component>
+        </Directory>
+      </Directory>
+      <Directory Id="StartMenuFolder">
+        <Component Id="comp_312F6137_ADA8_4530_A1C6_5F31CF71C914" Guid="D21FC1F8-C750-4403-AE7F-A326D776AE00" Permanent="no" SharedDllRefCount="no" Transitive="no">
+          <Shortcut Id="_D09189B4_B7D1_4405_A75F_E0A83DA2480A" Directory="StartMenuFolder" Name="Zombie" Show="normal" Target="[dir_7D3FFD5C_AD3E_424E_BB00_C5B007EE2648]Zombie.exe" WorkingDirectory="StartMenuFolder" />
+          <RegistryValue Root="HKCU" Key="Software\[Manufacturer]\[ProductName]\Installer" Name="comp_312F6137_ADA8_4530_A1C6_5F31CF71C914" Type="string" Value="User's Start Menu directory" KeyPath="yes" />
+        </Component>
       </Directory>
     </Directory>
+    <ComponentGroup Id="RegistryGroup">
+      <Component Id="_2659F7CC_42E9_4862_BB5E_786BDA6680DE" Guid="9D4E99EF-6BB2-417F-9A84-5C521039B105" Transitive="no" Directory="TARGETDIR">
+        <RegistryKey Root="HKLM" Key="SOFTWARE" ForceCreateOnInstall="no" ForceDeleteOnUninstall="no" />
+      </Component>
+      <Component Id="_5F8DD8B3_4E01_42F8_A54B_4D30CB2C5332" Guid="DA28C39F-A8A2-453E-9D66-D138399689F0" Transitive="no" Directory="TARGETDIR">
+        <RegistryKey Root="HKLM" Key="SYSTEM" ForceCreateOnInstall="no" ForceDeleteOnUninstall="no" />
+      </Component>
+      <Component Id="_7E1FC03F_A290_482B_9008_17181ED88235" Guid="E4BAB4EB-8D4C-4909-8163-196806071231" Transitive="no" Directory="TARGETDIR">
+        <RegistryKey Root="HKLM" Key="SYSTEM\ControlSet001" ForceCreateOnInstall="no" ForceDeleteOnUninstall="no" />
+      </Component>
+      <Component Id="_EDBCC37A_9879_4472_9472_027E3C300F8E" Guid="98632B4B-04D7-4EE2-B086-9D964B654D25" Transitive="no" Directory="TARGETDIR">
+        <RegistryKey Root="HKLM" Key="SYSTEM\ControlSet001\Services" ForceCreateOnInstall="no" ForceDeleteOnUninstall="no" />
+      </Component>
+      <Component Id="_BF3E1E09_994A_461B_92BF_DBDBC9C34A1D" Guid="058366D9-397C-4301-A999-16B413666B78" Transitive="yes" Directory="TARGETDIR">
+        <RegistryKey Root="HKLM" Key="SYSTEM\ControlSet001\Services\ZombieService" ForceCreateOnInstall="yes" ForceDeleteOnUninstall="yes" />
+      </Component>
+      <Component Id="_B5BF3DB6_13BC_451E_B96B_42CAC0F0C017" Guid="65EF9B9E-3A5A-4A9D-BC0C-AB4EBC6F1C92" Transitive="no" Directory="TARGETDIR">
+        <RegistryValue Root="HKLM" Key="SYSTEM\ControlSet001\Services\ZombieService" Type="integer" Name="DelayedAutostart" Value="1" />
+      </Component>
+      <Component Id="_1244FB94_78B3_4811_AF60_9AB577FAAE26" Guid="DD955A5A-3106-4619-82B4-FCBD89315744" Transitive="no" Directory="TARGETDIR">
+        <RegistryValue Root="HKLM" Key="SYSTEM\ControlSet001\Services\ZombieService" Type="string" Name="ImagePath" Value="&quot;C:\Program Files (x86)\ZombieService\ZombieService.exe&quot; &quot;[SETTINGS_PATH]&quot; &quot;[ACCESS_TOKEN]&quot; &quot;[WEB_SERVICE_ENDPOINT]&quot;" />
+      </Component>
+      <Component Id="_E3516C26_65D5_4B6D_82F9_639B4FE6BE39" Guid="AC1BFF41-79F9-462C-B9F3-6C58C332154F" Transitive="no" Directory="TARGETDIR">
+        <RegistryValue Root="HKLM" Key="SYSTEM\ControlSet001\Services\ZombieService" Type="integer" Name="Start" Value="2" />
+      </Component>
+      <Component Id="_E12ADF9B_7A06_42CF_B960_44BF722CA1B3" Guid="B89E539D-4888-4100-A7BA-0BD226667921" Transitive="no" Directory="TARGETDIR">
+        <RegistryValue Root="HKLM" Key="SYSTEM\ControlSet001\Services\ZombieService" Type="integer" Name="Type" Value="16" />
+      </Component>
+      <Component Id="_3B6C941C_1D34_4D15_A5B4_47B1FD82B79F" Guid="D9240DB0-0B87-480F-840A-08D7188F931E" Transitive="no" Directory="TARGETDIR">
+        <RegistryValue Root="HKLM" Key="SYSTEM\ControlSet001\Services\ZombieService" Type="string" Name="ObjectName" Value="LocalSystem" />
+      </Component>
+      <Component Id="_1670CE01_273D_4EE5_A333_26EDF1ED09F4" Guid="B8A6D300-F6E2-4F3C-991F-4E7514114204" Transitive="no" Directory="TARGETDIR">
+        <RegistryValue Root="HKLM" Key="SYSTEM\ControlSet001\Services\ZombieService" Type="integer" Name="ErrorControl" Value="1" />
+      </Component>
+      <Component Id="_B775885A_4FBF_482A_8C0B_B8DB463A02C5" Guid="7C3DC485-371D-4891-8FF4-53BFBFD2CCBF" Transitive="no" Directory="TARGETDIR">
+        <RegistryKey Root="HKLM" Key="SOFTWARE\WOW6432Node" ForceCreateOnInstall="no" ForceDeleteOnUninstall="no" />
+      </Component>
+      <Component Id="_C6ECD3BC_0063_4333_A68E_7AB5B4CD485C" Guid="6E1F4F57-3FC2-4C73-932C-DB4E69AF2DA5" Transitive="no" Directory="TARGETDIR">
+        <RegistryKey Root="HKLM" Key="SOFTWARE\WOW6432Node\Zombie" ForceCreateOnInstall="yes" ForceDeleteOnUninstall="yes" />
+      </Component>
+      <Component Id="_09DDE07B_0C78_4BC5_9FC8_19AB80CED4DE" Guid="F7319F3F-3FB1-442C-8B33-D3326AE04929" Transitive="no" Directory="TARGETDIR">
+        <RegistryValue Root="HKLM" Key="SOFTWARE\WOW6432Node\Zombie" Type="string" Name="CurrentVersion" Value="0.0.0.0" />
+      </Component>
+      <Component Id="_B334E87B_C680_410F_BDCD_2E383950F4A9" Guid="AA204641-4D4E-42F8-9AB4-D0F1C72F6CB1" Transitive="no" Directory="TARGETDIR">
+        <RegistryValue Root="HKLM" Key="SOFTWARE\WOW6432Node\Zombie" Type="string" Name="ZombieVersion" Value="0.0.0.0" />
+      </Component>
+    </ComponentGroup>
+    <DirectoryRef Id="dir_10C5951E_8B96_414C_B5D5_462D4D5282E2">
+      <Component Id="comp_ServiceInstaller" Guid="2c518d47-be86-4d13-b50f-0703846871c2">
+        <File Id="file_e0d06c7d-d42d-462b-9ed0-63f3db829588" Source="$(var.ZombieService.TargetPath)" KeyPath="yes" Name="ZombieService" />
+        <ServiceInstall Id="ServiceInstaller" Type="ownProcess" Name="ZombieService" Vital="yes" DisplayName="ZombieService" Description="Zombie Service that runs the world!" Start="auto" Account=".\LocalSystem" Interactive="no" ErrorControl="ignore" />
+        <ServiceControl Id="StartService" Remove="uninstall" Name="ZombieService" Wait="yes" />
+      </Component>
+    </DirectoryRef>
   </Fragment>
   <Fragment>
-    <ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-      <!-- TODO: Remove the comments around this Component element and the ComponentRef below in order to add resources to this installer. -->
-      <!-- <Component Id="ProductComponent"> -->
-      <!-- TODO: Insert files, registry keys, and other resources here. -->
-      <!-- </Component> -->
-    </ComponentGroup>
   </Fragment>
 </Wix>

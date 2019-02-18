@@ -12,6 +12,8 @@
     </Upgrade>
     <Property Id="ARPCOMMENTS" Value="Zombie is a set of tools that helps manage GitHub releases." />
     <Property Id="ARPCONTACT" Value="HOK" />
+    <Icon Id="icon.ico" SourceFile="Resources\iconsZombie.ico"/>
+    <Property Id="ARPPRODUCTICON" Value="icon.ico" />
     <MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
     <MediaTemplate EmbedCab="yes" />
     <Property Id="ACCESS_TOKEN" />
@@ -505,31 +507,31 @@
         <RegistryKey Root="HKLM" Key="SYSTEM" ForceCreateOnInstall="no" ForceDeleteOnUninstall="no" />
       </Component>
       <Component Id="_7E1FC03F_A290_482B_9008_17181ED88235" Guid="E4BAB4EB-8D4C-4909-8163-196806071231" Transitive="no" Directory="TARGETDIR">
-        <RegistryKey Root="HKLM" Key="SYSTEM\ControlSet001" ForceCreateOnInstall="no" ForceDeleteOnUninstall="no" />
+        <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet" ForceCreateOnInstall="no" ForceDeleteOnUninstall="no" />
       </Component>
       <Component Id="_EDBCC37A_9879_4472_9472_027E3C300F8E" Guid="98632B4B-04D7-4EE2-B086-9D964B654D25" Transitive="no" Directory="TARGETDIR">
-        <RegistryKey Root="HKLM" Key="SYSTEM\ControlSet001\Services" ForceCreateOnInstall="no" ForceDeleteOnUninstall="no" />
+        <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services" ForceCreateOnInstall="no" ForceDeleteOnUninstall="no" />
       </Component>
       <Component Id="_BF3E1E09_994A_461B_92BF_DBDBC9C34A1D" Guid="058366D9-397C-4301-A999-16B413666B78" Transitive="yes" Directory="TARGETDIR">
-        <RegistryKey Root="HKLM" Key="SYSTEM\ControlSet001\Services\ZombieService" ForceCreateOnInstall="yes" ForceDeleteOnUninstall="yes" />
+        <RegistryKey Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\ZombieService" ForceCreateOnInstall="yes" ForceDeleteOnUninstall="yes" />
       </Component>
       <Component Id="_B5BF3DB6_13BC_451E_B96B_42CAC0F0C017" Guid="65EF9B9E-3A5A-4A9D-BC0C-AB4EBC6F1C92" Transitive="no" Directory="TARGETDIR">
-        <RegistryValue Root="HKLM" Key="SYSTEM\ControlSet001\Services\ZombieService" Type="integer" Name="DelayedAutostart" Value="1" />
+        <RegistryValue Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\ZombieService" Type="integer" Name="DelayedAutostart" Value="1" />
       </Component>
       <Component Id="_1244FB94_78B3_4811_AF60_9AB577FAAE26" Guid="DD955A5A-3106-4619-82B4-FCBD89315744" Transitive="no" Directory="TARGETDIR">
-        <RegistryValue Root="HKLM" Key="SYSTEM\ControlSet001\Services\ZombieService" Type="string" Name="ImagePath" Value="&quot;C:\Program Files (x86)\ZombieService\ZombieService.exe&quot; &quot;[SETTINGS_PATH]&quot; &quot;[ACCESS_TOKEN]&quot; &quot;[WEB_SERVICE_ENDPOINT]&quot;" />
+        <RegistryValue Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\ZombieService" Type="string" Name="ImagePath" Value="&quot;C:\Program Files (x86)\ZombieService\ZombieService.exe&quot; &quot;[SETTINGS_PATH]&quot; &quot;[ACCESS_TOKEN]&quot; &quot;[WEB_SERVICE_ENDPOINT]&quot;" />
       </Component>
       <Component Id="_E3516C26_65D5_4B6D_82F9_639B4FE6BE39" Guid="AC1BFF41-79F9-462C-B9F3-6C58C332154F" Transitive="no" Directory="TARGETDIR">
-        <RegistryValue Root="HKLM" Key="SYSTEM\ControlSet001\Services\ZombieService" Type="integer" Name="Start" Value="2" />
+        <RegistryValue Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\ZombieService" Type="integer" Name="Start" Value="2" />
       </Component>
       <Component Id="_E12ADF9B_7A06_42CF_B960_44BF722CA1B3" Guid="B89E539D-4888-4100-A7BA-0BD226667921" Transitive="no" Directory="TARGETDIR">
-        <RegistryValue Root="HKLM" Key="SYSTEM\ControlSet001\Services\ZombieService" Type="integer" Name="Type" Value="16" />
+        <RegistryValue Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\ZombieService" Type="integer" Name="Type" Value="16" />
       </Component>
       <Component Id="_3B6C941C_1D34_4D15_A5B4_47B1FD82B79F" Guid="D9240DB0-0B87-480F-840A-08D7188F931E" Transitive="no" Directory="TARGETDIR">
-        <RegistryValue Root="HKLM" Key="SYSTEM\ControlSet001\Services\ZombieService" Type="string" Name="ObjectName" Value="LocalSystem" />
+        <RegistryValue Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\ZombieService" Type="string" Name="ObjectName" Value="LocalSystem" />
       </Component>
       <Component Id="_1670CE01_273D_4EE5_A333_26EDF1ED09F4" Guid="B8A6D300-F6E2-4F3C-991F-4E7514114204" Transitive="no" Directory="TARGETDIR">
-        <RegistryValue Root="HKLM" Key="SYSTEM\ControlSet001\Services\ZombieService" Type="integer" Name="ErrorControl" Value="1" />
+        <RegistryValue Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\ZombieService" Type="integer" Name="ErrorControl" Value="1" />
       </Component>
       <Component Id="_B775885A_4FBF_482A_8C0B_B8DB463A02C5" Guid="7C3DC485-371D-4891-8FF4-53BFBFD2CCBF" Transitive="no" Directory="TARGETDIR">
         <RegistryKey Root="HKLM" Key="SOFTWARE\WOW6432Node" ForceCreateOnInstall="no" ForceDeleteOnUninstall="no" />

@@ -3,6 +3,8 @@
   <Import Project="..\packages\SourceLink.Create.GitHub.2.8.3\build\SourceLink.Create.GitHub.props" Condition="Exists('..\packages\SourceLink.Create.GitHub.2.8.3\build\SourceLink.Create.GitHub.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{512E67A1-5D95-4153-884D-F7EAF58E9DFB}</ProjectGuid>
@@ -144,12 +146,4 @@ if exist "$(TargetPath)" if not exist "$(TargetPath).locked" move "$(TargetPath)
     <PostBuildEvent>
     </PostBuildEvent>
   </PropertyGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\SourceLink.Create.GitHub.2.8.3\build\SourceLink.Create.GitHub.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SourceLink.Create.GitHub.2.8.3\build\SourceLink.Create.GitHub.props'))" />
-    <Error Condition="!Exists('..\packages\SourceLink.Create.GitHub.2.8.3\build\SourceLink.Create.GitHub.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SourceLink.Create.GitHub.2.8.3\build\SourceLink.Create.GitHub.targets'))" />
-  </Target>
-  <Import Project="..\packages\SourceLink.Create.GitHub.2.8.3\build\SourceLink.Create.GitHub.targets" Condition="Exists('..\packages\SourceLink.Create.GitHub.2.8.3\build\SourceLink.Create.GitHub.targets')" />
 </Project>

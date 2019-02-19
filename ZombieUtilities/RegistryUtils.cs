@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.Win32;
 using NLog;
+using ZombieUtilities;
 
 namespace Zombie.Utilities
 {
@@ -15,7 +17,8 @@ namespace Zombie.Utilities
         private static Logger _logger = LogManager.GetCurrentClassLogger();
         private const string defaultVersion = "0.0.0.0";
         private const string keyName = "CurrentVersion";
-        private const string keyPath = @"SOFTWARE\Zombie";
+        private const string keyPath = @"SOFTWARE\WOW6432Node\Zombie";
+        private const string servicePath = @"SYSTEM\CurrentControlSet\Services\ZombieService";
 
         private const string zombieKeyName = "ZombieVersion";
 
@@ -61,8 +64,10 @@ namespace Zombie.Utilities
                 if (key == null)
                 {
                     // (Konrad) Key doesn't exist let's create it.
+                    // Also we can set the two registry default values.
                     key = Registry.LocalMachine.CreateSubKey(keyPath);
-                    key.SetValue(kName, defaultVersion);
+                    key.SetValue(keyName, defaultVersion);
+                    key.SetValue(zombieKeyName, defaultVersion);
                     key.Close();
                     return defaultVersion;
                 }
@@ -93,6 +98,40 @@ namespace Zombie.Utilities
             catch (Exception e)
             {
                 _logger.Fatal(e.Message);
+            }
+        }
+
+        public static void SetServiceCommandLine(string imagePath)
+        {
+            try
+            {
+                var key = Registry.LocalMachine.OpenSubKey(servicePath, true);
+                key.SetValue("ImagePath", imagePath);
+                key.Close();
+            }
+            catch (Exception e)
+            {
+                _logger.Fatal(e.Message);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        public static string GetZombieServiceArguments()
+        {
+            try
+            {
+                var key = Registry.LocalMachine.OpenSubKey(servicePath, false);
+                var value = key.GetValue("ImagePath") as string;
+                key.Close();
+
+                return string.IsNullOrWhiteSpace(value) ? string.Empty : value;
+            }
+            catch (Exception e)
+            {
+                _logger.Fatal(e.Message);
+                return string.Empty;
             }
         }
     }

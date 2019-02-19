@@ -6,6 +6,7 @@ using System.IO;
 using System.Reflection;
 using System.ServiceProcess;
 using System.Runtime.InteropServices;
+using NLog;
 using Zombie;
 using Zombie.Utilities;
 using ZombieService.Host;
@@ -20,6 +21,8 @@ namespace ZombieService
         [DllImport("advapi32.dll", SetLastError = true)]
         private static extern bool SetServiceStatus(IntPtr handle, ref ServiceStatus serviceStatus);
 
+        private static Logger _logger;
+
         public ZombieService(IReadOnlyList<string> args)
         {
             InitializeComponent();
@@ -27,41 +30,7 @@ namespace ZombieService
 
         protected override void OnStart(string[] args)
         {
-            // Update the service state to Start Pending.  
-            var serviceStatus = new ServiceStatus
-            {
-                dwCurrentState = ServiceState.SERVICE_START_PENDING,
-                dwWaitHint = 100000
-            };
-            SetServiceStatus(ServiceHandle, ref serviceStatus);
-
-#if DEBUG
-            System.Diagnostics.Debugger.Launch();
-#endif
-            // (Konrad) Configure NLog
-            var arguments = Environment.GetCommandLineArgs();
-            var endpoint = arguments.Length >= 4 ? new Uri(arguments[3]) : null;
-            NlogUtils.CreateConfiguration(endpoint);
-
-            // (Konrad) Set host, settings and runner if they don't exist
-            Program.Host = HostUtils.CreateHost(Program.Host);
-            Program.Settings = SettingsUtils.GetSettings(new[] {arguments[1], arguments[2]});
-            Program.Runner = new ZombieRunner(Program.Settings);
-
-            // Update the service state to Running.  
-            serviceStatus.dwCurrentState = ServiceState.SERVICE_RUNNING;
-            SetServiceStatus(ServiceHandle, ref serviceStatus);
-#if DEBUG
-            var dir = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), @"..\..\..\"));
-            var zombiePath = Path.Combine(dir, @"Zombie\bin\debug\Zombie.exe");
-#else
-            var dir = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), @"..\");
-            var zombiePath = Path.Combine(dir, @"Zombie\Zombie.exe");
-#endif
-            // launch the application
-            var commandPath = "\"" + zombiePath + "\" hide";
-            ApplicationLoader.PROCESS_INFORMATION procInfo;
-            ApplicationLoader.StartProcessAndBypassUAC(commandPath, out procInfo);
+            Start();
         }
 
         protected override void OnStop()
@@ -79,6 +48,48 @@ namespace ZombieService
             // Update the service state to Running.  
             serviceStatus.dwCurrentState = ServiceState.SERVICE_RUNNING;
             SetServiceStatus(ServiceHandle, ref serviceStatus);
+        }
+
+        public void Start()
+        {
+            // Update the service state to Start Pending.  
+            var serviceStatus = new ServiceStatus
+            {
+                dwCurrentState = ServiceState.SERVICE_START_PENDING,
+                dwWaitHint = 100000
+            };
+            SetServiceStatus(ServiceHandle, ref serviceStatus);
+
+#if DEBUG
+            System.Diagnostics.Debugger.Launch();
+#endif
+            // (Konrad) Configure NLog
+            var arguments = Environment.GetCommandLineArgs();
+            var endpoint = arguments.Length >= 4 ? new Uri(arguments[3]) : null;
+            NlogUtils.CreateConfiguration(endpoint);
+            _logger = LogManager.GetCurrentClassLogger();
+
+            // (Konrad) Set host, settings and runner if they don't exist
+            Program.Host = HostUtils.CreateHost(Program.Host);
+            Program.Settings = SettingsUtils.GetSettings(new[] { arguments[1], arguments[2] });
+            Program.Runner = new ZombieRunner(Program.Settings);
+
+            // Update the service state to Running.  
+            serviceStatus.dwCurrentState = ServiceState.SERVICE_RUNNING;
+            SetServiceStatus(ServiceHandle, ref serviceStatus);
+#if DEBUG
+            var dir = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), @"..\..\..\"));
+            var zombiePath = Path.Combine(dir, @"Zombie\bin\debug\Zombie.exe");
+#else
+            var dir = Path.GetFullPath(Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), @"..\"));
+            _logger.Info(dir);
+            var zombiePath = Path.Combine(dir, @"Zombie\Zombie.exe");
+            _logger.Info(zombiePath);
+#endif
+            // launch the application
+            var commandPath = "\"" + zombiePath + "\" hide";
+            ApplicationLoader.PROCESS_INFORMATION procInfo;
+            ApplicationLoader.StartProcessAndBypassUAC(commandPath, out procInfo);
         }
     }
 

@@ -30,21 +30,47 @@ namespace ZombieService.Runner
             try
             {
                 var client = new GitHubClient(new ProductHeaderValue("Zombie"));
+                var tokenAuth = new Credentials("0460743d5180c249dda25f6276e7c7c3a372de30");
+                client.Credentials = tokenAuth;
                 var release = await client.Repository.Release.GetLatest("HOKGroup", "Zombie");
                 var currentVersion = RegistryUtils.GetVersion(VersionType.Zombie);
                 if (!release.Assets.Any() || new Version(release.TagName).CompareTo(new Version(currentVersion)) <= 0)
                 {
+                    _logger.Info("Current version of Zombie installed: " + currentVersion);
+                    _logger.Info("Available version of Zombie: " + release.TagName);
+                    _logger.Info("Release is up to date. Terminate Zombie update check.");
                     return;
                 }
+
+                _logger.Info("Current version of Zombie installed: " + currentVersion);
+                _logger.Info("Available version of Zombie: " + release.TagName);
+                _logger.Info("Newer Zombie is available! Go get it tiger!");
 
                 // (Konrad) Schedule an update.
                 using (var ts = new TaskService())
                 {
-                    ts.Execute(@"C:\Users\konrad.sobon\source\repos\Zombie\ZombieUpdater\bin\Debug\ZombieUpdater.exe")
-                        .Once()
-                        .Starting(DateTime.Now.AddMinutes(2))
-                        .AsTask("Test");
+                    var td = ts.NewTask();
+                    td.RegistrationInfo.Description = "My first task scheduler";
+
+                    //// Run Task whether user logged on or not
+                    //td.Principal.UserId = string.Concat(Environment.UserDomainName, "\\", Environment.UserName);
+                    //td.Principal.LogonType = TaskLogonType.S4U;
+
+                    // Run as Administrator
+                    td.Principal.RunLevel = TaskRunLevel.Highest;
+                    var trigger = new TimeTrigger(DateTime.Now.AddMinutes(1));
+                    td.Triggers.Add(trigger);
+                    td.Actions.Add(new ExecAction(@"C:\Users\konrad.sobon\source\repos\Zombie\ZombieUpdater\bin\Debug\ZombieUpdater.exe"));
+                    ts.RootFolder.RegisterTaskDefinition("TaskName", td);
                 }
+
+                //using (var ts = new TaskService())
+                //{
+                //    ts.Execute(@"C:\Users\konrad.sobon\source\repos\Zombie\ZombieUpdater\bin\Debug\ZombieUpdater.exe")
+                //        .Once()
+                //        .Starting(DateTime.Now.AddMinutes(1))
+                //        .AsTask("Test");
+                //}
 
                 // (Konrad) Check for Zombie UI Running and terminate it.
                 if (IsProcessRunning("Zombie"))
@@ -120,7 +146,7 @@ namespace ZombieService.Runner
             foreach (var asset in release.Assets)
             {
                 var filePath = Path.Combine(dir, asset.Name);
-                if (GitHubUtils.DownloadAssets(settings, asset.Url, filePath)) downloaded++;
+                if (GitHubUtils.DownloadAssets(asset.Url, filePath, settings)) downloaded++;
             }
 
             if (downloaded != release.Assets.Count)
@@ -408,7 +434,7 @@ namespace ZombieService.Runner
 
                 if (!File.Exists(filePath))
                 {
-                    if (!GitHubUtils.DownloadAssets(settings, asset.Url, filePath)) return false;
+                    if (!GitHubUtils.DownloadAssets(asset.Url, filePath, settings)) return false;
                 }
             }
             else

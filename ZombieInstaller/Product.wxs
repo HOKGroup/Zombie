@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
-  <Product Id="*" Name="Zombie" Language="1033" Version="1.0.0.0" Manufacturer="HOK" UpgradeCode="8dc1f22c-f9de-48be-9f6e-e97f6d4fc9d9">
+  <Product Id="*" Name="Zombie" Language="1033" Version="!(bind.fileVersion._79637776_CE22_4D5F_A7AA_B1F6752A79EA)" Manufacturer="HOK" UpgradeCode="8dc1f22c-f9de-48be-9f6e-e97f6d4fc9d9">
     <Package InstallerVersion="200" Compressed="yes" InstallPrivileges="elevated" Manufacturer="HOK" Comments="Zombie is a set of tools that helps manage GitHub releases." Description="Zombie" />
     <Property Id="ARPURLUPDATEINFO" Value="https://github.com/HOKGroup/Zombie/releases" />
     <Property Id="ARPURLINFOABOUT" Value="https://github.com/HOKGroup/Zombie/issues" />
@@ -12,13 +12,14 @@
     </Upgrade>
     <Property Id="ARPCOMMENTS" Value="Zombie is a set of tools that helps manage GitHub releases." />
     <Property Id="ARPCONTACT" Value="HOK" />
-    <Icon Id="icon.ico" SourceFile="Resources\iconsZombie.ico"/>
-    <Property Id="ARPPRODUCTICON" Value="icon.ico" />
     <MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
     <MediaTemplate EmbedCab="yes" />
-    <Property Id="ACCESS_TOKEN" />
-    <Property Id="WEB_SERVICE_ENDPOINT" />
-    <Property Id="SETTINGS_PATH" />
+    <Property Id="ACCESSTOKEN" />
+    <Property Id="WEBSERVICEENDPOINT" />
+    <Property Id="SETTINGSPATH" />
+    <!--<Property Id="REBOOT" Value="ReallySuppress" />-->
+    <Icon Id="icon.ico" SourceFile="Resources\iconsZombie.ico"/>
+    <Property Id="ARPPRODUCTICON" Value="icon.ico" />
     <Feature Id="ProductFeature" Title="ZombieInstaller" Level="1">
       <!--Zombie Files-->
       <ComponentRef Id="comp_Zombie_Zombie" />
@@ -37,6 +38,7 @@
       <ComponentRef Id="comp_Zombie_ZombieLogo" />
       <!--Zombie Service Files-->
       <ComponentRef Id="comp_ZombieService_ZombieService" />
+      <ComponentRef Id="comp_ZombieService_TaskScheduler" />
       <ComponentRef Id="comp_ZombieService_Newtonsoft" />
       <ComponentRef Id="comp_ZombieService_NLog" />
       <ComponentRef Id="comp_ZombieService_Octokit" />
@@ -82,7 +84,7 @@
       <WriteRegistryValues Sequence="5901">
       </WriteRegistryValues>
       <!--Install Service is 5800. This ensures that we override the registry values after the install.-->
-      <ScheduleReboot After="InstallFinalize">REMOVE="ALL"</ScheduleReboot>
+      <!--<ScheduleReboot After="InstallFinalize">REMOVE="ALL"</ScheduleReboot>-->
       <Custom Action="PreventDowngrading" After="FindRelatedProducts"><![CDATA[NEWPRODUCTFOUND]]></Custom>
       <Custom Action="VSDCA_AllUsers" After="CostInitialize"><![CDATA[Installed="" AND NOT RESUME AND ALLUSERS=1]]></Custom>
     </InstallExecuteSequence>
@@ -381,71 +383,73 @@
           <Component Id="comp_Zombie_Zombie" Guid="312DA3DD-3634-430C-BD1C-2D95D31BC144" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_79637776_CE22_4D5F_A7AA_B1F6752A79EA" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
                   Name="Zombie.exe" 
-                  Source="..\Zombie\bin\Debug\Zombie.exe" KeyPath="yes" />
+                  Source="..\Zombie\bin\Release\Zombie.exe" KeyPath="yes" />
           </Component>
           <Component Id="comp_Zombie_GalaSoftMvvmLight" Guid="DCF57B86-0C1F-4E48-A410-8722B732B3C4" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_D1F2C8BF_E0CB_4DCF_A81E_4092379D4816" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
                   Name="GalaSoft.MvvmLight.dll" 
-                  Source="..\Zombie\bin\Debug\GalaSoft.MvvmLight.dll" KeyPath="yes" />
+                  Source="..\Zombie\bin\Release\GalaSoft.MvvmLight.dll" KeyPath="yes" />
           </Component>
           <Component Id="comp_Zombie_GalaSoftMvvmLightExtras" Guid="BFCD7E7E-3632-4CFB-907C-614A187E2D59" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_E2919E3D_015B_4BA5_B744_79720491D75E" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
                   Name="GalaSoft.MvvmLight.Extras.dll" 
-                  Source="..\Zombie\bin\Debug\GalaSoft.MvvmLight.Extras.dll" KeyPath="yes" />
+                  Source="..\Zombie\bin\Release\GalaSoft.MvvmLight.Extras.dll" KeyPath="yes" />
           </Component>   
           <Component Id="comp_Zombie_GalaSoftMvvmLightPlatform" Guid="61939693-8873-4F94-BC0C-2DAAC6D8FB20" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_B23D5090_AA2F_4DFA_A0FF_E1077D55D2D2" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
                   Name="GalaSoft.MvvmLight.Platform.dll" 
-                  Source="..\Zombie\bin\Debug\GalaSoft.MvvmLight.Platform.dll" KeyPath="yes" />
+                  Source="..\Zombie\bin\Release\GalaSoft.MvvmLight.Platform.dll" KeyPath="yes" />
           </Component>       
           <Component Id="comp_Zombie_ServiceLocation" Guid="1AA60BDC-4075-4620-B09F-6A52249DD455" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_C419740F_6D6A_4A7B_AC53_4F91CF2E7223" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
                   Name="Microsoft.Practices.ServiceLocation.dll" 
-                  Source="..\Zombie\bin\Debug\Microsoft.Practices.ServiceLocation.dll" KeyPath="yes" />
+                  Source="..\Zombie\bin\Release\Microsoft.Practices.ServiceLocation.dll" KeyPath="yes" />
           </Component>           
           <Component Id="comp_Zombie_Compression" Guid="4581AC7A-0D2F-4B65-AAC8-E866537781A3" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_10A4ED02_9AAE_4FB4_9850_643B924851F9" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
                   Name="System.IO.Compression.dll" 
-                  Source="..\Zombie\bin\Debug\System.IO.Compression.dll" KeyPath="yes" />
+                  Source="..\Zombie\bin\Release\System.IO.Compression.dll" KeyPath="yes" />
           </Component>        
           <Component Id="comp_Zombie_WindowsInteractivity" Guid="8C4173E8-212A-4EC2-8196-F2FB06907A34" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_06EB74EC_6FEB_4E40_9D65_F42A5103A430" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
                   Name="System.Windows.Interactivity.dll" 
-                  Source="..\Zombie\bin\Debug\System.Windows.Interactivity.dll" KeyPath="yes" />
+                  Source="..\Zombie\bin\Release\System.Windows.Interactivity.dll" KeyPath="yes" />
           </Component>
           <Component Id="comp_Zombie_GongSolutionsWpfDragDrop" Guid="7F05A8AE-0AA6-4A41-B90F-43B5AFD7D28F" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_868CEE4E_7B00_44AA_A154_161CB820C087" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
                   Name="GongSolutions.WPF.DragDrop.dll" 
-                  Source="..\Zombie\bin\Debug\GongSolutions.WPF.DragDrop.dll" KeyPath="yes" />
+                  Source="..\Zombie\bin\Release\GongSolutions.WPF.DragDrop.dll" KeyPath="yes" />
           </Component>
           <Component Id="comp_Zombie_NewtonsoftJson" Guid="20727DE2-2325-40A3-807C-554BC548588E" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_E6212F95_9D96_411A_9A64_24E1A390107E" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
                   Name="Newtonsoft.Json.dll" 
-                  Source="..\Zombie\bin\Debug\Newtonsoft.Json.dll" KeyPath="yes" />
+                  Source="..\Zombie\bin\Release\Newtonsoft.Json.dll" KeyPath="yes" />
           </Component>
           <Component Id="comp_Zombie_Nlog" Guid="C264693D-9609-4174-A33C-A68DD8591909" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_492F8ACF_2B76_4662_879F_AAC0197204FC" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
                   Name="NLog.dll" 
-                  Source="..\Zombie\bin\Debug\NLog.dll" KeyPath="yes" />
+                  Source="..\Zombie\bin\Release\NLog.dll" KeyPath="yes" />
           </Component>
           <Component Id="comp_Zombie_Octokit" Guid="0F0513B3-8EF4-46DC-893B-DA0B7308D43E" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_5B3421C6_E33F_451F_9C40_9D8E5A6DF87A" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes"
                   Name="Octokit.dll" 
-                  Source="..\Zombie\bin\Debug\Octokit.dll" KeyPath="yes" />
+                  Source="..\Zombie\bin\Release\Octokit.dll" KeyPath="yes" />
           </Component>
           <Component Id="comp_Zombie_RestSharp" Guid="6345D3E9-5C52-48B4-BD29-EDD5041273CD" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_D62A8F57_2184_4939_9172_FB5ECDE7EAF9" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
                   Name="RestSharp.dll" 
-                  Source="..\Zombie\bin\Debug\RestSharp.dll" KeyPath="yes" />
+                  Source="..\Zombie\bin\Release\RestSharp.dll" KeyPath="yes" />
           </Component>
           <Component Id="comp_Zombie_ZombieUtilities" Guid="99FA378E-096F-49BA-A69F-B73E23BBD38F" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_632F6C7D_04E5_41AE_B3A8_E89616612B29" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
                   Name="ZombieUtilities.dll" 
-                  Source="..\Zombie\bin\Debug\ZombieUtilities.dll" KeyPath="yes" />
+                  Source="..\Zombie\bin\Release\ZombieUtilities.dll" KeyPath="yes" />
           </Component>
           <Directory Id="dir_1EAD3491_2B4B_45F2_96FD_C83A78D31E8A" Name="Resources">
             <Component Id="comp_Zombie_ZombieLogo" Guid="67AF35C9-8A7C-4E53-991F-E6FA6DCF3A1E" Permanent="no" SharedDllRefCount="no" Transitive="no">
-              <File Id="_E91B4FD5_E010_4074_B9A5_EFF78223BCD2" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" Name="zombie_64x64.png" Source="..\Zombie\bin\Debug\Resources\zombie_64x64.png" KeyPath="yes" />
+              <File Id="_E91B4FD5_E010_4074_B9A5_EFF78223BCD2" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                    Name="zombie_64x64.png" 
+                    Source="..\Zombie\bin\Release\Resources\zombie_64x64.png" KeyPath="yes" />
             </Component>
           </Directory>
         </Directory>
@@ -453,42 +457,47 @@
           <Component Id="comp_ZombieService_ZombieService" Guid="A3B03BA0-DE18-45D6-A674-125574A83F42" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_3B251300_1B9A_45CA_8AA6_0264113401F7" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
                   Name="ZombieService.exe" 
-                  Source="..\ZombieService\bin\Debug\ZombieService.exe" KeyPath="yes" />
+                  Source="..\ZombieService\bin\Release\ZombieService.exe" KeyPath="yes" />
+          </Component>
+          <Component Id="comp_ZombieService_TaskScheduler" Guid="3ED91F71-4513-4C09-A282-496D8311DD49" Permanent="no" SharedDllRefCount="no" Transitive="no">
+            <File Id="_BE1C49CB_AC90_4A4C_B453_CCFD28EFE6DD" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
+                  Name="Microsoft.Win32.TaskScheduler.dll" 
+                  Source="..\ZombieService\bin\Release\Microsoft.Win32.TaskScheduler.dll" KeyPath="yes" />
           </Component>
           <Component Id="comp_ZombieService_Newtonsoft" Guid="EBFAC4B5-ED72-49E9-ABA9-EB1150AF1CC6" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_5342607B_140E_4551_BDE1_7C78D89BB541" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
                   Name="Newtonsoft.Json.dll" 
-                  Source="..\ZombieService\bin\Debug\Newtonsoft.Json.dll" KeyPath="yes" />
+                  Source="..\ZombieService\bin\Release\Newtonsoft.Json.dll" KeyPath="yes" />
           </Component>
           <Component Id="comp_ZombieService_NLog" Guid="EF354F59-9BE1-4C24-A3C8-6F4F362B75B3" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_AC2AE4A7_7604_40A9_8825_79969145496B" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
                   Name="NLog.dll" 
-                  Source="..\ZombieService\bin\Debug\NLog.dll" KeyPath="yes" />
+                  Source="..\ZombieService\bin\Release\NLog.dll" KeyPath="yes" />
           </Component>
           <Component Id="comp_ZombieService_Octokit" Guid="3560EC58-E34C-4261-8F56-B5190BF5684C" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_56BC83AF_7D8E_46B9_AF7E_355C736F5E44" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
                   Name="Octokit.dll" 
-                  Source="..\ZombieService\bin\Debug\Octokit.dll" KeyPath="yes" />
+                  Source="..\ZombieService\bin\Release\Octokit.dll" KeyPath="yes" />
           </Component>
           <Component Id="comp_ZombieService_RestSharp" Guid="4FF8EE21-037A-427B-8BBD-706ABC492E3D" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_F6BEA545_2F19_4812_91DA_510DEAAC12A3" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
                   Name="RestSharp.dll" 
-                  Source="..\ZombieService\bin\Debug\RestSharp.dll" KeyPath="yes" />
+                  Source="..\ZombieService\bin\Release\RestSharp.dll" KeyPath="yes" />
           </Component>
           <Component Id="comp_ZombieService_ZombieUtilities" Guid="C99BAC14-5291-4D61-858D-9404C8BD08A3" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_777FB6ED_1301_4F82_BD90_54E62E6AACA6" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
                   Name="ZombieUtilities.dll" 
-                  Source="..\ZombieService\bin\Debug\ZombieUtilities.dll" KeyPath="yes" />
+                  Source="..\ZombieService\bin\Release\ZombieUtilities.dll" KeyPath="yes" />
           </Component>
           <Component Id="comp_ZombieService_Compression" Guid="985361AE-6887-4F3D-AB5D-131EFC6ECB50" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_D4101652_2E33_4282_867D_9C668147A64F" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
                   Name="System.IO.Compression.dll" 
-                  Source="..\ZombieService\bin\Debug\System.IO.Compression.dll" KeyPath="yes" />
+                  Source="..\ZombieService\bin\Release\System.IO.Compression.dll" KeyPath="yes" />
           </Component>     
           <Component Id="comp_ZombieService_ZombieServiceConfig" Guid="A1397435-5110-46DA-8AAB-2CF4F32279FA" Permanent="no" SharedDllRefCount="no" Transitive="no">
             <File Id="_D872235B_3BAD_4CD9_B644_EA0420528DB1" DiskId="1" Hidden="no" ReadOnly="no" TrueType="no" System="no" Vital="yes" 
                   Name="ZombieService.exe.config" 
-                  Source="..\ZombieService\bin\Debug\ZombieService.exe.config" KeyPath="yes" />
+                  Source="..\ZombieService\bin\Release\ZombieService.exe.config" KeyPath="yes" />
           </Component>
         </Directory>
       </Directory>
@@ -519,7 +528,7 @@
         <RegistryValue Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\ZombieService" Type="integer" Name="DelayedAutostart" Value="1" />
       </Component>
       <Component Id="_1244FB94_78B3_4811_AF60_9AB577FAAE26" Guid="DD955A5A-3106-4619-82B4-FCBD89315744" Transitive="no" Directory="TARGETDIR">
-        <RegistryValue Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\ZombieService" Type="string" Name="ImagePath" Value="&quot;C:\Program Files (x86)\ZombieService\ZombieService.exe&quot; &quot;[SETTINGS_PATH]&quot; &quot;[ACCESS_TOKEN]&quot; &quot;[WEB_SERVICE_ENDPOINT]&quot;" />
+        <RegistryValue Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\ZombieService" Type="string" Name="ImagePath" Value="&quot;C:\Program Files (x86)\ZombieService\ZombieService.exe&quot; &quot;[SETTINGSPATH]&quot; &quot;[ACCESSTOKEN]&quot; &quot;[WEBSERVICEENDPOINT]&quot;" />
       </Component>
       <Component Id="_E3516C26_65D5_4B6D_82F9_639B4FE6BE39" Guid="AC1BFF41-79F9-462C-B9F3-6C58C332154F" Transitive="no" Directory="TARGETDIR">
         <RegistryValue Root="HKLM" Key="SYSTEM\CurrentControlSet\Services\ZombieService" Type="integer" Name="Start" Value="2" />
@@ -543,7 +552,7 @@
         <RegistryValue Root="HKLM" Key="SOFTWARE\WOW6432Node\Zombie" Type="string" Name="CurrentVersion" Value="0.0.0.0" />
       </Component>
       <Component Id="_B334E87B_C680_410F_BDCD_2E383950F4A9" Guid="AA204641-4D4E-42F8-9AB4-D0F1C72F6CB1" Transitive="no" Directory="TARGETDIR">
-        <RegistryValue Root="HKLM" Key="SOFTWARE\WOW6432Node\Zombie" Type="string" Name="ZombieVersion" Value="0.0.0.0" />
+        <RegistryValue Root="HKLM" Key="SOFTWARE\WOW6432Node\Zombie" Type="string" Name="ZombieVersion" Value="[ProductVersion]" />
       </Component>
     </ComponentGroup>
     <DirectoryRef Id="dir_10C5951E_8B96_414C_B5D5_462D4D5282E2">

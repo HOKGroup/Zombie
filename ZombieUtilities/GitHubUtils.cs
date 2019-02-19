@@ -23,7 +23,7 @@ namespace Zombie.Utilities
         /// <param name="settings"></param>
         /// <param name="url"></param>
         /// <param name="filePath"></param>
-        public static bool DownloadAssets(ZombieSettings settings, string url, string filePath)
+        public static bool DownloadAssets(string url, string filePath, ZombieSettings settings = null)
         {
             // (Konrad) Apparently it's possible that new Windows updates change the standard 
             // SSL protocol to SSL3. RestSharp uses whatever current one is while GitHub server 
@@ -37,9 +37,10 @@ namespace Zombie.Utilities
                 OnBeforeDeserialization = x => { x.ContentType = "application/json"; }
             };
             request.AddHeader("Content-type", "application/json");
-            request.AddHeader("Authorization", "Token " + settings.AccessToken);
             request.AddHeader("Accept", "application/octet-stream");
             request.RequestFormat = DataFormat.Json;
+
+            if (settings != null) request.AddHeader("Authorization", "Token " + settings.AccessToken);
 
             // (Konrad) We use 120 because even when it fails there are always some
             // bytes that get returned with the error message.

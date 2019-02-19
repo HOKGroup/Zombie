@@ -1,4 +1,5 @@
-﻿using System.ServiceModel;
+﻿using System;
+using System.ServiceModel;
 using System.ServiceProcess;
 using Zombie;
 using Zombie.Utilities;
@@ -18,12 +19,33 @@ namespace ZombieService
         /// </summary>
         public static void Main(string[] args)
         {
-            Service = new ZombieService(args);
-            var ServicesToRun = new ServiceBase[]
+            try
             {
-                Service
-            };
-            ServiceBase.Run(ServicesToRun);
+                Service = new ZombieService(args);
+                var ServicesToRun = new ServiceBase[]
+                {
+                    Service
+                };
+                ServiceBase.Run(ServicesToRun);
+
+                //if (Environment.UserInteractive)
+                //{
+                //    Service.Start();
+                //}
+                //else
+                //{
+                //    ServiceBase.Run(new ServiceBase[]
+                //    {
+                //        Service
+                //    });
+                //}
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            
         }
     }
 }

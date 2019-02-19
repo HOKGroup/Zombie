@@ -150,7 +150,7 @@ namespace ZombieService
                 return false;
             }
 
-            // Security attibute structure used in DuplicateTokenEx and CreateProcessAsUser
+            // Security attribute structure used in DuplicateTokenEx and CreateProcessAsUser
             // I would prefer to not have to use a security attribute variable and to just 
             // simply pass null and inherit (by default) the security attributes
             // of the existing token. However, in C# structures are value types and therefore

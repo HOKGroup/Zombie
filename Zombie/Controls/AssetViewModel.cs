@@ -76,7 +76,7 @@ namespace Zombie.Controls
                 var filePath = Path.Combine(dir, Asset.Name);
 
                 // download
-                GitHubUtils.DownloadAssets(App.Settings, Asset.Url, filePath);
+                GitHubUtils.DownloadAssets(Asset.Url, filePath, App.Settings);
 
                 // verify
                 if (!File.Exists(filePath))

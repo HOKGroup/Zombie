@@ -53,27 +53,27 @@
     </InstallUISequence>
   </Fragment>
   <Fragment Id="CustomText3Dlg">
-    <CustomAction Id="CustomTextC_SetProperty_EDIT1" Property="SETTINGS_PATH" Value="" Execute="firstSequence" />
-    <CustomAction Id="CustomTextC_SetProperty_EDIT2" Property="ACCESS_TOKEN" Value="" Execute="firstSequence" />
-    <CustomAction Id="CustomTextC_SetProperty_EDIT3" Property="WEB_SERVICE_ENDPOINT" Value="" Execute="firstSequence" />
+    <CustomAction Id="CustomTextC_SetProperty_EDIT1" Property="SETTINGSPATH" Value="" Execute="firstSequence" />
+    <CustomAction Id="CustomTextC_SetProperty_EDIT2" Property="ACCESSTOKEN" Value="" Execute="firstSequence" />
+    <CustomAction Id="CustomTextC_SetProperty_EDIT3" Property="WEBSERVICEENDPOINT" Value="" Execute="firstSequence" />
     <CustomAction Id="CustomTextC_SetProperty_EDIT4" Property="EDITC4" Value="" Execute="firstSequence" />
     <Property Id="CustomTextC_PrevArgs" Value="EulaForm" />
     <UI Id="CustomText3Dlg">
       <Property Id="EDITC4" Value="1" />
-      <Property Id="WEB_SERVICE_ENDPOINT" Value="1" />
-      <Property Id="ACCESS_TOKEN" Value="1" />
-      <Property Id="SETTINGS_PATH" Value="1" />
+      <Property Id="WEBSERVICEENDPOINT" Value="1" />
+      <Property Id="ACCESSTOKEN" Value="1" />
+      <Property Id="SETTINGSPATH" Value="1" />
       <Dialog Id="CustomTextC" X="50" Y="50" Width="373" Height="287" Title="[ProductName]">
         <Control Id="NextButton" Type="PushButton" X="300" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}&amp;Next &gt;" TabSkip="no" Default="yes">
           <Publish Event="EndDialog" Value="Return"><![CDATA[CustomTextC_NextArgs=""]]></Publish>
           <Publish Event="NewDialog" Value="[CustomTextC_NextArgs]"><![CDATA[CustomTextC_NextArgs<>""]]></Publish>
         </Control>
         <Control Id="Label1" Type="Text" X="18" Y="108" Width="348" Height="12" Text="{\VSI_MS_Sans_Serif13.0_0_0}Zombie Settings Path:" TabSkip="no" />
-        <Control Id="Edit1" Type="Edit" X="18" Y="120" Width="348" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}" TabSkip="no" Property="SETTINGS_PATH" Sunken="yes" />
+        <Control Id="Edit1" Type="Edit" X="18" Y="120" Width="348" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}" TabSkip="no" Property="SETTINGSPATH" Sunken="yes" />
         <Control Id="Label2" Type="Text" X="18" Y="144" Width="348" Height="12" Text="{\VSI_MS_Sans_Serif13.0_0_0}GitHub Token:" TabSkip="no" />
-        <Control Id="Edit2" Type="Edit" X="18" Y="156" Width="348" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}" TabSkip="no" Property="ACCESS_TOKEN" Sunken="yes" />
+        <Control Id="Edit2" Type="Edit" X="18" Y="156" Width="348" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}" TabSkip="no" Property="ACCESSTOKEN" Sunken="yes" />
         <Control Id="Label3" Type="Text" X="18" Y="180" Width="348" Height="12" Text="{\VSI_MS_Sans_Serif13.0_0_0}Log Server Path:" TabSkip="no" />
-        <Control Id="Edit3" Type="Edit" X="18" Y="192" Width="348" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}" TabSkip="no" Property="WEB_SERVICE_ENDPOINT" Sunken="yes" />
+        <Control Id="Edit3" Type="Edit" X="18" Y="192" Width="348" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}" TabSkip="no" Property="WEBSERVICEENDPOINT" Sunken="yes" />
         <Control Id="Label4" Type="Text" X="18" Y="216" Width="348" Height="12" Text="{\VSI_MS_Sans_Serif13.0_0_0}Edit4:" TabSkip="no" Hidden="yes" />
         <Control Id="Edit4" Type="Edit" X="18" Y="228" Width="348" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}" TabSkip="no" Property="EDITC4" Sunken="yes" Hidden="yes" />
         <Control Id="CancelButton" Type="PushButton" X="156" Y="261" Width="66" Height="18" Text="{\VSI_MS_Sans_Serif13.0_0_0}Cancel" TabSkip="no" Cancel="yes">
